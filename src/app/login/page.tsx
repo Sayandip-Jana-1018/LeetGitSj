@@ -3,21 +3,22 @@ import { signIn } from "@/auth";
 import { Code2 } from "lucide-react";
 import { Github } from "@/components/icons/github";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { AuroraBackground } from "@/components/landing";
+import { GithubSignInButton } from "@/components/login/GithubSignInButton";
 
 export default function LoginPage() {
+  const githubAction = async () => {
+    "use server";
+    await signIn("github", { redirectTo: "/dashboard" });
+  };
+
   return (
     <div className="relative min-h-screen flex flex-col">
-      <AuroraBackground />
-      
       {/* Minimal nav */}
       <nav className="relative z-10 w-full p-6 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-[var(--radius-md)] bg-[var(--color-accent)] flex items-center justify-center shadow-lg shadow-[var(--color-accent)]/20">
-            <span className="text-[var(--color-accent-foreground)] font-bold text-sm">LP</span>
-          </div>
+          <img src="/profile_photo.jpg" alt="Logo" className="w-8 h-8 rounded-full object-cover shadow-sm" />
           <span className="font-bold tracking-tight text-[var(--color-text-primary)]">
-            LeetPush
+            LeetGit<span className="text-[var(--color-accent)]">Sj</span>
           </span>
         </div>
         <ThemeToggle />
@@ -50,21 +51,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <form
-              action={async () => {
-                "use server";
-                await signIn("github", { redirectTo: "/dashboard" });
-              }}
-            >
-              <button
-                type="submit"
-                className="w-full group relative flex items-center justify-center gap-3 px-6 py-3.5 text-base font-semibold rounded-xl bg-[var(--color-text-primary)] text-[var(--color-text-inverse)] hover:bg-[var(--color-text-secondary)] active:scale-[0.98] transition-all duration-200"
-              >
-                <Github className="w-5 h-5" />
-                Continue with GitHub
-                <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-black/10 dark:ring-white/10 pointer-events-none" />
-              </button>
-            </form>
+            <GithubSignInButton action={githubAction} />
 
             <p className="mt-6 text-center text-xs text-[var(--color-text-muted)]">
               By signing in, you agree to our{" "}
@@ -78,3 +65,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

@@ -12,12 +12,15 @@ export function DashboardPreview() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
-  // Mock heatmap data (365 cells)
-  const heatmapData = React.useMemo(() => 
-    Array.from({ length: 52 * 7 }, () =>
-      // eslint-disable-next-line react-hooks/purity
-      Math.random() > 0.6 ? Math.floor(Math.random() * 4) + 1 : 0
-    )
+  // Deterministic mock data — seeded by index so SSR and client always match.
+  // Using a simple hash-like formula to produce a realistic-looking heatmap.
+  const heatmapData = React.useMemo(() =>
+    Array.from({ length: 52 * 7 }, (_, i) => {
+      // Pseudo-random but deterministic: produces 0 (empty) ~40% of the time, else 1-4
+      const seed = (i * 2654435761) >>> 0; // Knuth multiplicative hash
+      const norm = (seed % 1000) / 1000;
+      return norm > 0.55 ? Math.min(4, Math.floor(norm * 8) % 4 + 1) : 0;
+    })
   , []);
 
   const recentActivity = [

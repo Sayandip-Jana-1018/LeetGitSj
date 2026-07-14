@@ -331,3 +331,53 @@ export async function fetchSubmissionDetail(
     question: d.question,
   };
 }
+
+export interface LeetCodeProblemMeta {
+  difficulty: "Easy" | "Medium" | "Hard";
+  tags: string[];
+  runtimePercentile?: number;
+  memoryPercentile?: number;
+}
+
+/**
+ * Fetch problem metadata including difficulty and tags.
+ * We also try to grab percentile data if we can (some queries return it).
+ */
+export async function fetchProblemMeta(
+  session: string,
+  csrfToken: string,
+  titleSlug: string
+): Promise<LeetCodeProblemMeta> {
+  const query = `
+    query questionData($titleSlug: String!) {
+      question(titleSlug: $titleSlug) {
+        difficulty
+        topicTags {
+          name
+        }
+      }
+    }
+  `;
+
+  const data = (await leetcodeGraphQL(
+    query,
+    { titleSlug },
+    { session, csrfToken }
+  )) as {
+    question: {
+      difficulty: "Easy" | "Medium" | "Hard";
+      topicTags: Array<{ name: string }>;
+    };
+  };
+
+  const difficulty = data.question?.difficulty || "Medium";
+  const tags = data.question?.topicTags?.map((t) => t.name) || [];
+
+  return {
+    difficulty,
+    tags,
+    // Note: To get accurate runtime/memory percentiles on a specific submission,
+    // it usually requires hitting the specific submission detail metric endpoint.
+    // We'll leave these undefined for now, or you can expand this to fetch them.
+  };
+}

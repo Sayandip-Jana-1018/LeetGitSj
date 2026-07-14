@@ -20,7 +20,7 @@ const item: Variants = {
 
 export function Hero() {
   return (
-    <section className="relative min-h-[100dvh] flex items-center justify-center px-6 pt-28 pb-20">
+    <section className="relative min-h-[100dvh] flex items-center justify-center px-6 pt-28 pb-20 overflow-hidden">
       <motion.div
         variants={container}
         initial="hidden"

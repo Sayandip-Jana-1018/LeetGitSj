@@ -22,11 +22,9 @@ export function Sidebar() {
       {/* Mobile top bar */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-[var(--radius-md)] bg-[var(--color-accent)] flex items-center justify-center">
-            <span className="text-[var(--color-accent-foreground)] font-bold text-sm">LP</span>
-          </div>
+          <img src="/profile_photo.jpg" alt="Logo" className="w-8 h-8 rounded-full object-cover shadow-sm" />
           <span className="font-bold tracking-tight text-[var(--color-text-primary)]">
-            LeetPush
+            LeetGitSj
           </span>
         </Link>
         <div className="flex items-center gap-3">
@@ -50,11 +48,9 @@ export function Sidebar() {
           <div className="relative flex w-full max-w-xs flex-col overflow-y-auto bg-[var(--color-surface)] p-6 shadow-xl">
             <div className="flex items-center justify-between mb-8">
               <Link href="/dashboard" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
-                <div className="w-8 h-8 rounded-[var(--radius-md)] bg-[var(--color-accent)] flex items-center justify-center">
-                  <span className="text-[var(--color-accent-foreground)] font-bold text-sm">LP</span>
-                </div>
+                <img src="/profile_photo.jpg" alt="Logo" className="w-8 h-8 rounded-full object-cover shadow-sm" />
                 <span className="font-bold tracking-tight text-[var(--color-text-primary)]">
-                  LeetPush
+                  LeetGitSj
                 </span>
               </Link>
               <button
@@ -102,14 +98,12 @@ export function Sidebar() {
       {/* Desktop sidebar */}
       <div className="hidden md:flex flex-col w-64 border-r border-[var(--color-border)] bg-[var(--color-surface)] h-full fixed left-0 top-0">
         <div className="p-6">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-[var(--radius-md)] bg-[var(--color-accent)] flex items-center justify-center shadow-sm">
-              <span className="text-[var(--color-accent-foreground)] font-bold text-sm">LP</span>
-            </div>
-            <span className="font-bold tracking-tight text-[var(--color-text-primary)]">
-              LeetPush
-            </span>
-          </Link>
+            <Link href="/dashboard" className="flex items-center gap-2.5 mb-8">
+              <img src="/profile_photo.jpg" alt="Logo" className="w-8 h-8 rounded-full object-cover shadow-sm" />
+              <span className="font-bold tracking-tight text-[var(--color-text-primary)] text-lg">
+                LeetGitSj
+              </span>
+            </Link>
         </div>
 
         <nav className="flex-1 px-4 space-y-1 overflow-y-auto">

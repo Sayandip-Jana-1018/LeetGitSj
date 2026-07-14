@@ -1,34 +1,25 @@
 import { prisma } from "./prisma";
 import { decrypt } from "./encryption";
-import { commitFile } from "./github";
+import { commitSolutionFolder } from "./github";
 import {
   fetchRecentSubmissions,
   fetchSubmissionDetail,
+  fetchProblemMeta,
   getFileExtension,
   LeetCodeAuthError,
   LeetCodeRateLimitError,
 } from "./leetcode";
-import { interpolate, sleep } from "./utils";
+import { setExpiredFlag } from "./queue";
+import { generateReadme } from "./readme-gen";
+import { sendExpiryNotification } from "./notifications";
+import { slugify, sleep } from "./utils";
 
 // ============================================================
-// Sync Engine — Core Business Logic
+// Sync Engine — Core Business Logic (Phase 6)
 // ============================================================
 
-/**
- * How many consecutive already-synced submissions to see
- * before stopping (we've "caught up").
- */
 const EARLY_STOP_THRESHOLD = 5;
-
-/**
- * Max submissions to process in a single sync run.
- * Prevents runaway first-time backfills from hogging resources.
- */
 const MAX_SUBMISSIONS_PER_RUN = 50;
-
-/**
- * Page size for fetching submissions from LeetCode.
- */
 const PAGE_SIZE = 20;
 
 export interface SyncResult {
@@ -39,25 +30,17 @@ export interface SyncResult {
 }
 
 /**
- * Synchronize a user's LeetCode submissions to their GitHub repo.
- *
- * This is the heart of the product — called by both the manual
- * "Sync now" flow (via BullMQ job) and the automated scheduler.
- *
- * Algorithm:
- * 1. Load & decrypt credentials
- * 2. Fetch submissions newest-first from LeetCode
- * 3. Skip non-Accepted, diff against SyncedSubmission by LC submission ID
- * 4. Early-stop once we hit EARLY_STOP_THRESHOLD consecutive already-synced
- * 5. For each new Accepted: fetch code → commit to GitHub → record
- * 6. Log the run
+ * Build the canonical folder path for a submission.
+ * Format: {questionId}-{slug}
+ * e.g. "1-two-sum" or "42-trapping-rain-water"
  */
-export async function syncUserSubmissions(
-  userId: string
-): Promise<SyncResult> {
+function buildFolderPath(questionId: string, titleSlug: string): string {
+  return `${questionId}-${slugify(titleSlug)}`;
+}
+
+export async function syncUserSubmissions(userId: string): Promise<SyncResult> {
   const startTime = Date.now();
 
-  // 1. Load user's credential and installation
   const [credential, installation] = await Promise.all([
     prisma.leetCodeCredential.findUnique({ where: { userId } }),
     prisma.gitHubInstallation.findUnique({ where: { userId } }),
@@ -81,7 +64,7 @@ export async function syncUserSubmissions(
     });
   }
 
-  // 2. Decrypt credentials in-memory
+  // Decrypt credentials in-memory — never logged, never returned to any response
   let session: string;
   let csrfToken: string;
   try {
@@ -96,7 +79,6 @@ export async function syncUserSubmissions(
     });
   }
 
-  // 3. Walk submissions newest-first
   let offset = 0;
   let consecutiveAlreadySynced = 0;
   let newCount = 0;
@@ -105,10 +87,7 @@ export async function syncUserSubmissions(
   try {
     outer: while (newCount < MAX_SUBMISSIONS_PER_RUN) {
       const { submissions, hasMore } = await fetchRecentSubmissions(
-        session,
-        csrfToken,
-        PAGE_SIZE,
-        offset
+        session, csrfToken, PAGE_SIZE, offset
       );
 
       if (submissions.length === 0) break;
@@ -116,64 +95,69 @@ export async function syncUserSubmissions(
       for (const sub of submissions) {
         if (newCount >= MAX_SUBMISSIONS_PER_RUN) break outer;
 
-        // Skip non-Accepted submissions
-        if (sub.statusDisplay !== "Accepted") {
-          continue;
-        }
+        if (sub.statusDisplay !== "Accepted") continue;
 
-        // Check if already synced
         const existing = await prisma.syncedSubmission.findUnique({
           where: { leetcodeSubmissionId: sub.id },
         });
 
         if (existing) {
           consecutiveAlreadySynced++;
-          if (consecutiveAlreadySynced >= EARLY_STOP_THRESHOLD) {
-            break outer; // We've caught up — stop walking
-          }
+          if (consecutiveAlreadySynced >= EARLY_STOP_THRESHOLD) break outer;
           continue;
         }
 
-        // Reset counter — found a new one
         consecutiveAlreadySynced = 0;
 
-        // 4. Fetch full submission detail (source code)
         try {
-          const detail = await fetchSubmissionDetail(
-            session,
-            csrfToken,
-            sub.id
-          );
-
-          // 5. Build file path and commit message
+          // Fetch full submission details (code, runtime, memory)
+          const detail = await fetchSubmissionDetail(session, csrfToken, sub.id);
           const ext = getFileExtension(detail.lang);
-          const templateVars: Record<string, string> = {
+
+          // Fetch problem metadata (difficulty, tags, percentiles)
+          const meta = await fetchProblemMeta(session, csrfToken, detail.question.titleSlug);
+
+          // Build folder path with normalized slug — no spaces, no special chars
+          const folderPath = buildFolderPath(detail.question.questionId, detail.question.titleSlug);
+          const solutionFileName = `solution.${ext}`;
+
+          // Generate README (AI-assisted with fallback)
+          const readme = await generateReadme({
             questionId: detail.question.questionId,
-            titleSlug: detail.question.titleSlug,
             title: detail.question.title,
+            titleSlug: detail.question.titleSlug,
+            difficulty: meta.difficulty,
+            tags: meta.tags,
+            code: detail.code,
             lang: detail.lang,
-            ext,
-          };
+            runtime: detail.runtime,
+            memory: detail.memory,
+            runtimePercentile: meta.runtimePercentile,
+            memoryPercentile: meta.memoryPercentile,
+            submissionId: sub.id,
+          });
 
-          const filePath = interpolate(
-            installation.folderPattern,
-            templateVars
-          );
-          const commitMessage = interpolate(
-            installation.commitMessageTemplate,
-            templateVars
-          );
+          // Build commit message from template
+          const commitMessage = installation.commitMessageTemplate
+            .replace("{questionId}", detail.question.questionId)
+            .replace("{titleSlug}", detail.question.titleSlug)
+            .replace("{title}", detail.question.title)
+            .replace("{lang}", detail.lang)
+            .replace("{difficulty}", meta.difficulty);
 
-          // 6. Commit to GitHub
-          const { sha, commitUrl } = await commitFile(
+          // Atomic commit: solution + README land in one Git commit
+          const { sha, commitUrl } = await commitSolutionFolder(
             installation.installationId,
             installation.repoFullName,
-            filePath,
-            detail.code,
-            commitMessage
+            [
+              { path: `${folderPath}/${solutionFileName}`, content: detail.code },
+              { path: `${folderPath}/README.md`, content: readme.content },
+            ],
+            commitMessage,
+            installation.defaultBranch || "main"
           );
 
-          // 7. Record the synced submission
+          // Record to database
           await prisma.syncedSubmission.create({
             data: {
               userId,
@@ -182,8 +166,12 @@ export async function syncUserSubmissions(
               problemTitle: detail.question.title,
               questionId: detail.question.questionId,
               language: detail.lang,
+              difficulty: meta.difficulty,
+              tags: meta.tags,
               runtime: detail.runtime,
               memory: detail.memory,
+              runtimePercentile: meta.runtimePercentile,
+              memoryPercentile: meta.memoryPercentile,
               commitSha: sha,
               commitUrl: commitUrl,
             },
@@ -191,19 +179,14 @@ export async function syncUserSubmissions(
 
           newCount++;
         } catch (err) {
-          // If it's a single submission failure, log and continue with others
-          if (
-            err instanceof LeetCodeAuthError ||
-            err instanceof LeetCodeRateLimitError
-          ) {
-            throw err; // These are fatal — bubble up
+          if (err instanceof LeetCodeAuthError || err instanceof LeetCodeRateLimitError) {
+            throw err; // Fatal — bubble up
           }
           lastError = `Failed to sync submission ${sub.id}: ${err instanceof Error ? err.message : String(err)}`;
           console.error(lastError);
         }
 
-        // Small delay between GitHub commits to be respectful
-        await sleep(500);
+        await sleep(500); // respectful pacing between commits
       }
 
       if (!hasMore) break;
@@ -211,11 +194,17 @@ export async function syncUserSubmissions(
     }
   } catch (err) {
     if (err instanceof LeetCodeAuthError) {
-      // Mark credential as expired
+      // Mark as expired and fire exactly one notification
       await prisma.leetCodeCredential.update({
         where: { userId },
         data: { status: "EXPIRED" },
       });
+
+      // Backoff in Redis for 23h to prevent hammering
+      await setExpiredFlag(userId);
+
+      // Fire notification (will skip if already notified for this cycle)
+      await sendExpiryNotification(userId);
 
       return logAndReturn(userId, {
         status: "failure",
@@ -242,14 +231,7 @@ export async function syncUserSubmissions(
     });
   }
 
-  // Determine final status
-  const status =
-    newCount === 0
-      ? "no_new"
-      : lastError
-        ? "partial"
-        : "success";
-
+  const status = newCount === 0 ? "no_new" : lastError ? "partial" : "success";
   return logAndReturn(userId, {
     status,
     newSubmissionsCount: newCount,
@@ -258,13 +240,7 @@ export async function syncUserSubmissions(
   });
 }
 
-/**
- * Log the sync run to the database and return the result.
- */
-async function logAndReturn(
-  userId: string,
-  result: SyncResult
-): Promise<SyncResult> {
+async function logAndReturn(userId: string, result: SyncResult): Promise<SyncResult> {
   const statusMap = {
     success: "SUCCESS" as const,
     partial: "PARTIAL" as const,
@@ -283,7 +259,6 @@ async function logAndReturn(
       },
     });
   } catch (err) {
-    // Don't let logging failure prevent the sync result from returning
     console.error("Failed to write SyncLog:", err);
   }
 

@@ -32,3 +32,18 @@ export function sleep(ms: number): Promise<void> {
 export function jitter(maxMs: number): number {
   return Math.floor(Math.random() * maxMs);
 }
+
+/**
+ * Slugify a string into lowercase hyphenated form.
+ * Used for folder path generation to avoid spaces and special chars in git paths.
+ * Examples:
+ *   "Two Sum" → "two-sum"
+ *   "3Sum Closest" → "3sum-closest"
+ *   "N-Queens II" → "n-queens-ii"
+ */
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}

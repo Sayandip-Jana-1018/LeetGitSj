@@ -15,11 +15,15 @@ model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  githubId      String?   @unique
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  emailVerified      DateTime?
+  image              String?
+  githubId           String?   @unique
+  notifyEmail        String?
+  discordWebhookUrl  String?
+  isPublicBadgeEnabled Boolean @default(false)
+  notificationSentAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   accounts           Account[]
   sessions           Session[]
@@ -78,6 +82,7 @@ model GitHubInstallation {
   repoFullName          String   // "owner/repo"
   folderPattern         String   @default("{questionId}-{titleSlug}/{titleSlug}.{ext}")
   commitMessageTemplate String   @default("Add: {questionId}. {title} ({lang})")
+  defaultBranch         String   @default("main")
   isActive              Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
@@ -113,10 +118,15 @@ model SyncedSubmission {
   problemTitle          String
   questionId            String
   language              String
+  difficulty            String?
+  tags                  String[]
   runtime               String?
   memory                String?
+  runtimePercentile     Float?
+  memoryPercentile      Float?
   commitSha             String?
   commitUrl             String?
+  readmePath            String?
   syncedAt              DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

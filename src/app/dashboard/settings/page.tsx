@@ -1,11 +1,12 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { KeyRound, AlertTriangle, ShieldCheck } from "lucide-react";
+import { KeyRound, AlertTriangle, ShieldCheck, Bell } from "lucide-react";
 import { Github } from "@/components/icons/github";
 import { LeetCodeConnectForm } from "@/components/dashboard/LeetCodeConnectForm";
 import { GitHubSettingsForm } from "@/components/dashboard/GitHubSettingsForm";
 import { DisconnectButton } from "@/components/dashboard/DisconnectButton";
+import { NotificationSettingsForm } from "@/components/dashboard/NotificationSettingsForm";
 
 export const dynamic = "force-dynamic";
 
@@ -20,16 +21,16 @@ export default async function SettingsPage() {
     prisma.gitHubInstallation.findUnique({ where: { userId } }),
   ]);
 
-  const appInstallUrl = `https://github.com/apps/${process.env.GITHUB_APP_NAME || "leetpush"}/installations/new`;
+  const appInstallUrl = `https://github.com/apps/${process.env.NEXT_PUBLIC_GITHUB_APP_SLUG || "leetpush"}/installations/new`;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 max-w-3xl">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
-          Settings & Connections
+          Settings &amp; Connections
         </h1>
         <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-          Manage your GitHub integration and LeetCode credentials.
+          Manage your GitHub integration, LeetCode credentials, and notifications.
         </p>
       </div>
 
@@ -55,7 +56,6 @@ export default async function SettingsPage() {
             </span>
           )}
         </div>
-
         <div className="p-6 space-y-6">
           {!github?.isActive ? (
             <div className="text-center py-6">
@@ -85,7 +85,7 @@ export default async function SettingsPage() {
             </div>
             <div>
               <h2 className="font-semibold text-[var(--color-text-primary)]">LeetCode Credentials</h2>
-              <p className="text-xs text-[var(--color-text-muted)]">Secure session cookies</p>
+              <p className="text-xs text-[var(--color-text-muted)]">Manual cookie paste or auto-connect</p>
             </div>
           </div>
           {leetcode?.status === "ACTIVE" ? (
@@ -94,7 +94,7 @@ export default async function SettingsPage() {
             </span>
           ) : leetcode?.status === "EXPIRED" ? (
             <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-danger-subtle)] text-[var(--color-danger)]">
-              Expired
+              Expired — Reconnect Required
             </span>
           ) : (
             <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-[var(--color-surface-hover)] text-[var(--color-text-muted)]">
@@ -102,20 +102,36 @@ export default async function SettingsPage() {
             </span>
           )}
         </div>
-
-        <div className="p-6">
-          <div className="mb-6 p-4 rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)]/50 border border-[var(--color-accent)]/20 flex items-start gap-3">
+        <div className="p-6 space-y-5">
+          <div className="p-4 rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)]/50 border border-[var(--color-accent)]/20 flex items-start gap-3">
             <ShieldCheck className="w-5 h-5 text-[var(--color-accent)] shrink-0 mt-0.5" />
             <div className="text-sm text-[var(--color-text-secondary)]">
               <span className="font-semibold text-[var(--color-text-primary)] block mb-1">AES-256-GCM Encryption</span>
-              Your cookies are encrypted instantly before being stored in the database. They are only decrypted in-memory during a sync run.
+              Credentials are encrypted before database storage and only decrypted in-memory during a sync run on our secure worker.
             </div>
           </div>
-
-          <LeetCodeConnectForm 
-            isConnected={leetcode?.status === "ACTIVE"} 
+          <LeetCodeConnectForm
+            isConnected={leetcode?.status === "ACTIVE"}
             isExpired={leetcode?.status === "EXPIRED"}
           />
+        </div>
+      </section>
+
+      {/* Notifications & Badge */}
+      <section className="glass-card overflow-hidden">
+        <div className="p-6 border-b border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-[var(--radius-md)] bg-[hsl(262,80%,60%)] flex items-center justify-center">
+              <Bell className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="font-semibold text-[var(--color-text-primary)]">Notifications &amp; Badge</h2>
+              <p className="text-xs text-[var(--color-text-muted)]">Expiry alerts and public profile badge</p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <NotificationSettingsForm leetcodeUsername={leetcode?.leetcodeUsername} />
         </div>
       </section>
 
@@ -131,7 +147,7 @@ export default async function SettingsPage() {
           <div>
             <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Delete Account Data</h3>
             <p className="text-xs text-[var(--color-text-muted)] mt-1 max-w-md">
-              Permanently delete your LeetCode credentials and all sync history. 
+              Permanently delete your LeetCode credentials and all sync history.
               This does not delete the commits from your GitHub repository.
             </p>
           </div>

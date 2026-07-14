@@ -10,7 +10,7 @@ const steps = [
     icon: UserPlus,
     title: "Sign in with GitHub",
     description:
-      "One click to authenticate. Install the LeetPush GitHub App on the repo where you want your solutions committed.",
+      "One click to authenticate. Install the LeetGitSj GitHub App on the repo where you want your solutions committed.",
     accent: "hsl(172, 85%, 50%)",
   },
   {
@@ -55,31 +55,29 @@ export function HowItWorks() {
         </motion.div>
 
         {/* Steps */}
-        <div ref={ref} className="space-y-0">
+        <div ref={ref} className="space-y-0 relative">
+          {/* Center timeline line */}
+          <div className="absolute left-1/2 top-0 bottom-0 w-[2px] bg-gradient-to-b from-[var(--color-border)] to-transparent -translate-x-1/2 hidden sm:block" />
+
           {steps.map((step, i) => (
             <motion.div
               key={step.number}
-              initial={{ opacity: 0, x: i % 2 === 0 ? -40 : 40 }}
-              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, ease: "easeOut", delay: i * 0.2 }}
-              className="relative flex items-start gap-6 pb-12 last:pb-0"
+              className="relative flex flex-col items-center text-center pb-16 last:pb-0"
             >
-              {/* Timeline line */}
-              {i < steps.length - 1 && (
-                <div className="absolute left-[27px] top-[56px] bottom-0 w-[2px] bg-gradient-to-b from-[var(--color-border)] to-transparent" />
-              )}
-
               {/* Step number circle */}
               <div
-                className="relative z-10 flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center border-2 bg-[var(--color-surface)]"
+                className="relative z-10 flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center border-2 bg-[var(--color-surface)] mb-4"
                 style={{ borderColor: step.accent }}
               >
                 <step.icon className="w-6 h-6" style={{ color: step.accent }} />
               </div>
 
               {/* Content */}
-              <div className="pt-2">
-                <div className="flex items-center gap-3 mb-2">
+              <div>
+                <div className="mb-2">
                   <span
                     className="text-xs font-bold tracking-widest"
                     style={{ color: step.accent }}
@@ -90,7 +88,7 @@ export function HowItWorks() {
                 <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-2">
                   {step.title}
                 </h3>
-                <p className="text-[var(--color-text-secondary)] leading-relaxed max-w-lg">
+                <p className="text-[var(--color-text-secondary)] leading-relaxed max-w-lg mx-auto">
                   {step.description}
                 </p>
               </div>

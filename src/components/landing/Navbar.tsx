@@ -13,15 +13,13 @@ export function Navbar() {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="fixed top-0 left-0 right-0 z-50"
     >
-      <div className="mx-auto max-w-6xl px-6 py-4">
-        <div className="glass-card flex items-center justify-between px-5 py-3">
+      <div className="mx-auto max-w-6xl px-4 pt-6">
+        <div className="bg-white/10 dark:bg-black/20 backdrop-blur-lg border border-white/20 dark:border-white/10 rounded-full flex items-center justify-between px-6 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-[var(--radius-md)] bg-[var(--color-accent)] flex items-center justify-center group-hover:shadow-[var(--shadow-glow)] transition-shadow duration-300">
-              <span className="text-[var(--color-accent-foreground)] font-bold text-sm">LP</span>
-            </div>
+            <img src="/profile_photo.jpg" alt="Logo" className="w-8 h-8 rounded-full object-cover shadow-sm group-hover:shadow-[var(--shadow-glow)] transition-shadow duration-300" />
             <span className="font-semibold text-[var(--color-text-primary)] text-lg tracking-tight">
-              Leet<span className="text-[var(--color-accent)]">Push</span>
+              LeetGit<span className="text-[var(--color-accent)]">Sj</span>
             </span>
           </Link>
 

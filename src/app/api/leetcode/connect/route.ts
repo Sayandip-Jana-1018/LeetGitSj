@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { encrypt } from "@/lib/encryption";
 import { verifyCredentials } from "@/lib/leetcode";
+import { clearExpiredFlag, syncQueue } from "@/lib/queue";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -63,6 +64,16 @@ export async function POST(request: NextRequest) {
         lastVerifiedAt: new Date(),
       },
     });
+
+    // Clear any expired backoff flag in Redis
+    await clearExpiredFlag(session.user.id);
+
+    // Enqueue an immediate sync to get them started right away
+    await syncQueue.add(
+      `sync:${session.user.id}`,
+      { userId: session.user.id },
+      { jobId: `manual-sync-${session.user.id}-${Date.now()}` }
+    );
 
     return NextResponse.json({
       success: true,

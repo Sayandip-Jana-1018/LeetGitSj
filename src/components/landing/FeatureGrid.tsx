@@ -80,7 +80,7 @@ export function FeatureGrid() {
             <motion.div
               key={feature.title}
               variants={card}
-              className="group relative glass-card p-8 hover:shadow-[var(--shadow-lg)] hover:border-[var(--color-accent)]/30 transition-all duration-300"
+              className="group relative glass-card p-8 hover:shadow-[var(--shadow-lg)] hover:border-[var(--color-accent)]/30 transition-all duration-300 flex flex-col items-center text-center"
             >
               {/* Icon */}
               <div

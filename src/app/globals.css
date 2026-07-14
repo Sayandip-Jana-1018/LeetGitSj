@@ -113,7 +113,7 @@
   --color-glass: var(--color-glass);
   --color-glass-border: var(--color-glass-border);
 
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-playfair, 'Playfair Display', serif);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -195,23 +195,126 @@ body {
 }
 
 /* --- Aurora / gradient mesh background --- */
-@keyframes aurora-shift {
-  0% { transform: translate(0%, 0%) rotate(0deg); }
-  25% { transform: translate(5%, -3%) rotate(2deg); }
-  50% { transform: translate(-3%, 5%) rotate(-1deg); }
-  75% { transform: translate(2%, -2%) rotate(1deg); }
-  100% { transform: translate(0%, 0%) rotate(0deg); }
+/* --- Smoke drift keyframes (different patterns per tier) --- */
+@keyframes smoke-base-drift {
+  0%   { transform: translate(0%, 0%) scale(1) rotate(0deg); }
+  33%  { transform: translate(6%, -4%) scale(1.08) rotate(2deg); }
+  66%  { transform: translate(-5%, 7%) scale(0.95) rotate(-2deg); }
+  100% { transform: translate(0%, 0%) scale(1) rotate(0deg); }
 }
 
-.aurora-blob {
-  animation: aurora-shift 20s ease-in-out infinite;
-  filter: blur(80px);
-  opacity: 0.4;
+@keyframes smoke-wisp-drift {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.9; }
+  25%  { transform: translate(60px, -45px) scale(1.15); opacity: 1; }
+  50%  { transform: translate(-45px, 70px) scale(0.92); opacity: 0.8; }
+  75%  { transform: translate(70px, 30px) scale(1.1); opacity: 0.95; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0.9; }
+}
+
+@keyframes smoke-particle-float {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.8; }
+  20%  { transform: translate(35px, -40px) scale(1.25); opacity: 1; }
+  40%  { transform: translate(-25px, 25px) scale(0.88); opacity: 0.7; }
+  60%  { transform: translate(45px, 15px) scale(1.2); opacity: 0.95; }
+  80%  { transform: translate(-30px, -30px) scale(0.92); opacity: 0.75; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+}
+
+/* Large subtle base layer — very heavy blur, slow drift */
+.smoke-base {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
+  filter: blur(130px);
+  opacity: 0.85;
+  animation: smoke-base-drift 22s ease-in-out infinite alternate;
 }
 
-[data-theme="dark"] .aurora-blob {
-  opacity: 0.3;
+/* Medium wisps — moderate blur, medium speed */
+.smoke-wisp {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(60px);
+  opacity: 0.85;
+  animation: smoke-wisp-drift 16s ease-in-out infinite;
+}
+
+/* Small particles — light blur, fastest movement */
+.smoke-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(30px);
+  opacity: 0.90;
+  animation: smoke-particle-float 12s ease-in-out infinite;
+}
+
+/* Keep legacy aurora-blob in case any component still uses it */
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(100px);
+  opacity: 0.7;
+  animation: smoke-wisp-drift 16s ease-in-out infinite;
+}
+
+/* --- Noise texture overlay --- */
+.noise-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --- Staggered entrance animations --- */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+.stagger-6 { animation-delay: 300ms; }
+
+/* --- Shimmer skeleton loader --- */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-elevated) 25%,
+    var(--color-surface-hover)    50%,
+    var(--color-surface-elevated) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: var(--radius-sm);
+}
+
+/* --- Glow accent ring on focus for interactive cards --- */
+.focus-glow:focus-within {
+  box-shadow: var(--shadow-glow);
+}
+
+/* --- Gradient text utility --- */
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-accent), hsl(262, 80%, 65%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

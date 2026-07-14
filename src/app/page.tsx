@@ -1,5 +1,4 @@
 import {
-  AuroraBackground,
   Navbar,
   Hero,
   FeatureGrid,
@@ -13,8 +12,6 @@ import {
 export default function LandingPage() {
   return (
     <main className="relative min-h-screen">
-      {/* Animated background layer — behind everything */}
-      <AuroraBackground />
 
       {/* Fixed glass navbar */}
       <Navbar />

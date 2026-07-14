@@ -52,7 +52,7 @@ export function Footer() {
 
         <div className="mt-8 text-center">
           <p className="text-xs text-[var(--color-text-muted)]">
-            © {new Date().getFullYear()} LeetPush. Not affiliated with LeetCode Inc. or GitHub Inc.
+            © {new Date().getFullYear()} LeetGitSj. Not affiliated with LeetCode Inc. or GitHub Inc.
           </p>
         </div>
       </div>
