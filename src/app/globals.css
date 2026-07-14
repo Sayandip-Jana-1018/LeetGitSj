@@ -1,26 +1,217 @@
 @import "tailwindcss";
 
+/* ============================================================
+   LeetPush Design Token System
+   
+   Every color in the app resolves through these CSS custom 
+   properties. Components never contain raw hex values.
+   
+   Light: :root (default)
+   Dark:  [data-theme="dark"] 
+   System-preference detection handled by ThemeProvider.
+   ============================================================ */
+
+/* --- Light Theme Tokens --- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-bg: hsl(0, 0%, 99%);
+  --color-surface: hsl(0, 0%, 100%);
+  --color-surface-elevated: hsl(220, 20%, 97%);
+  --color-surface-hover: hsl(220, 15%, 95%);
+  --color-border: hsl(220, 15%, 90%);
+  --color-border-subtle: hsl(220, 15%, 94%);
+
+  --color-text-primary: hsl(222, 47%, 11%);
+  --color-text-secondary: hsl(220, 15%, 35%);
+  --color-text-muted: hsl(220, 10%, 55%);
+  --color-text-inverse: hsl(0, 0%, 100%);
+
+  --color-accent: hsl(172, 85%, 35%);
+  --color-accent-hover: hsl(172, 85%, 30%);
+  --color-accent-foreground: hsl(0, 0%, 100%);
+  --color-accent-subtle: hsl(172, 60%, 95%);
+
+  --color-success: hsl(142, 71%, 40%);
+  --color-success-subtle: hsl(142, 60%, 95%);
+  --color-danger: hsl(0, 72%, 51%);
+  --color-danger-subtle: hsl(0, 60%, 96%);
+  --color-warning: hsl(38, 92%, 50%);
+  --color-warning-subtle: hsl(38, 80%, 95%);
+
+  --color-glass: hsla(220, 20%, 97%, 0.7);
+  --color-glass-border: hsla(220, 15%, 85%, 0.5);
+
+  --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.04);
+  --shadow-md: 0 4px 12px hsla(0, 0%, 0%, 0.06);
+  --shadow-lg: 0 8px 30px hsla(0, 0%, 0%, 0.08);
+  --shadow-glow: 0 0 20px hsla(172, 85%, 35%, 0.15);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
 }
 
+/* --- Dark Theme Tokens --- */
+[data-theme="dark"] {
+  --color-bg: hsl(222, 47%, 5%);
+  --color-surface: hsl(222, 40%, 8%);
+  --color-surface-elevated: hsl(222, 35%, 12%);
+  --color-surface-hover: hsl(222, 30%, 16%);
+  --color-border: hsl(222, 25%, 18%);
+  --color-border-subtle: hsl(222, 25%, 14%);
+
+  --color-text-primary: hsl(210, 40%, 96%);
+  --color-text-secondary: hsl(215, 20%, 70%);
+  --color-text-muted: hsl(215, 15%, 50%);
+  --color-text-inverse: hsl(222, 47%, 5%);
+
+  --color-accent: hsl(172, 85%, 50%);
+  --color-accent-hover: hsl(172, 85%, 55%);
+  --color-accent-foreground: hsl(222, 47%, 5%);
+  --color-accent-subtle: hsla(172, 85%, 50%, 0.1);
+
+  --color-success: hsl(142, 71%, 50%);
+  --color-success-subtle: hsla(142, 71%, 50%, 0.1);
+  --color-danger: hsl(0, 72%, 60%);
+  --color-danger-subtle: hsla(0, 72%, 51%, 0.1);
+  --color-warning: hsl(38, 92%, 55%);
+  --color-warning-subtle: hsla(38, 92%, 50%, 0.1);
+
+  --color-glass: hsla(222, 40%, 10%, 0.7);
+  --color-glass-border: hsla(222, 25%, 25%, 0.5);
+
+  --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.2);
+  --shadow-md: 0 4px 12px hsla(0, 0%, 0%, 0.3);
+  --shadow-lg: 0 8px 30px hsla(0, 0%, 0%, 0.4);
+  --shadow-glow: 0 0 30px hsla(172, 85%, 50%, 0.2);
+}
+
+/* --- Map tokens to Tailwind v4 via @theme --- */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text-primary);
+  --color-surface: var(--color-surface);
+  --color-surface-elevated: var(--color-surface-elevated);
+  --color-surface-hover: var(--color-surface-hover);
+  --color-border: var(--color-border);
+  --color-border-subtle: var(--color-border-subtle);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-inverse: var(--color-text-inverse);
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-foreground: var(--color-accent-foreground);
+  --color-accent-subtle: var(--color-accent-subtle);
+  --color-success: var(--color-success);
+  --color-success-subtle: var(--color-success-subtle);
+  --color-danger: var(--color-danger);
+  --color-danger-subtle: var(--color-danger-subtle);
+  --color-warning: var(--color-warning);
+  --color-warning-subtle: var(--color-warning-subtle);
+  --color-glass: var(--color-glass);
+  --color-glass-border: var(--color-glass-border);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* --- Global Transitions (smooth theme switching) --- */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Disable transitions for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
   }
 }
 
+/* --- Base Styles --- */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Focus States (accessibility) --- */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* --- Scrollbar Styling (dark theme) --- */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* --- Glass Card Utility --- */
+.glass-card {
+  background: var(--color-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+}
+
+/* --- Pulse animation for sync status --- */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* --- Aurora / gradient mesh background --- */
+@keyframes aurora-shift {
+  0% { transform: translate(0%, 0%) rotate(0deg); }
+  25% { transform: translate(5%, -3%) rotate(2deg); }
+  50% { transform: translate(-3%, 5%) rotate(-1deg); }
+  75% { transform: translate(2%, -2%) rotate(1deg); }
+  100% { transform: translate(0%, 0%) rotate(0deg); }
+}
+
+.aurora-blob {
+  animation: aurora-shift 20s ease-in-out infinite;
+  filter: blur(80px);
+  opacity: 0.4;
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .aurora-blob {
+  opacity: 0.3;
 }

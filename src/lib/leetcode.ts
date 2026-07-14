@@ -1,0 +1,333 @@
+import { sleep } from "./utils";
+
+// ============================================================
+// LeetCode GraphQL API Client
+// ============================================================
+
+const LEETCODE_GRAPHQL_URL = "https://leetcode.com/graphql";
+
+// Rate limiting: minimum 2 seconds between requests
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL_MS = 2000;
+
+/**
+ * Language slug → file extension mapping.
+ * Covers all languages LeetCode currently supports.
+ */
+export const LANG_TO_EXT: Record<string, string> = {
+  python3: "py",
+  python: "py",
+  java: "java",
+  cpp: "cpp",
+  "c++": "cpp",
+  c: "c",
+  javascript: "js",
+  typescript: "ts",
+  golang: "go",
+  go: "go",
+  rust: "rs",
+  csharp: "cs",
+  "c#": "cs",
+  kotlin: "kt",
+  swift: "swift",
+  ruby: "rb",
+  scala: "scala",
+  php: "php",
+  dart: "dart",
+  racket: "rkt",
+  erlang: "erl",
+  elixir: "ex",
+  mysql: "sql",
+  mssql: "sql",
+  oraclesql: "sql",
+  postgresql: "sql",
+  pythondata: "py",
+  react: "jsx",
+  vanillajs: "js",
+  bash: "sh",
+};
+
+/**
+ * Normalize a language slug from LeetCode.
+ * LeetCode sometimes returns "python3", "cpp", "golang" etc.
+ */
+export function getFileExtension(lang: string): string {
+  const normalized = lang.toLowerCase().replace(/\s+/g, "");
+  return LANG_TO_EXT[normalized] ?? "txt";
+}
+
+interface LeetCodeRequestOptions {
+  session: string;
+  csrfToken: string;
+}
+
+/**
+ * Internal: make a rate-limited request to LeetCode's GraphQL API.
+ */
+async function leetcodeGraphQL(
+  query: string,
+  variables: Record<string, unknown>,
+  credentials: LeetCodeRequestOptions
+): Promise<unknown> {
+  // Enforce rate limit
+  const now = Date.now();
+  const elapsed = now - lastRequestTime;
+  if (elapsed < MIN_REQUEST_INTERVAL_MS) {
+    await sleep(MIN_REQUEST_INTERVAL_MS - elapsed);
+  }
+  lastRequestTime = Date.now();
+
+  const response = await fetch(LEETCODE_GRAPHQL_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: `LEETCODE_SESSION=${credentials.session}; csrftoken=${credentials.csrfToken}`,
+      "x-csrftoken": credentials.csrfToken,
+      Referer: "https://leetcode.com",
+      Origin: "https://leetcode.com",
+    },
+    body: JSON.stringify({ query, variables }),
+  });
+
+  if (response.status === 401 || response.status === 403) {
+    throw new LeetCodeAuthError(
+      `LeetCode returned ${response.status} — session likely expired`
+    );
+  }
+
+  if (response.status === 429) {
+    throw new LeetCodeRateLimitError("LeetCode rate limit hit (429)");
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `LeetCode GraphQL request failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const json = await response.json();
+
+  if (json.errors) {
+    // Check if any error indicates auth failure
+    const authError = json.errors.find(
+      (e: { message: string }) =>
+        e.message.includes("sign in") ||
+        e.message.includes("authentication") ||
+        e.message.includes("unauthorized")
+    );
+    if (authError) {
+      throw new LeetCodeAuthError(authError.message);
+    }
+    throw new Error(`LeetCode GraphQL errors: ${JSON.stringify(json.errors)}`);
+  }
+
+  return json.data;
+}
+
+// ============================================================
+// Custom Error Classes
+// ============================================================
+
+export class LeetCodeAuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LeetCodeAuthError";
+  }
+}
+
+export class LeetCodeRateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LeetCodeRateLimitError";
+  }
+}
+
+// ============================================================
+// Public API Methods
+// ============================================================
+
+export interface LeetCodeUserProfile {
+  username: string;
+  realName: string;
+  ranking: number;
+}
+
+/**
+ * Verify that LeetCode credentials are valid.
+ * Returns the user's profile if valid, throws LeetCodeAuthError if not.
+ */
+export async function verifyCredentials(
+  session: string,
+  csrfToken: string
+): Promise<LeetCodeUserProfile> {
+  const query = `
+    query globalData {
+      userStatus {
+        username
+        realName
+        ranking
+        isSignedIn
+      }
+    }
+  `;
+
+  const data = (await leetcodeGraphQL(query, {}, { session, csrfToken })) as {
+    userStatus: {
+      username: string;
+      realName: string;
+      ranking: number;
+      isSignedIn: boolean;
+    };
+  };
+
+  if (!data.userStatus?.isSignedIn || !data.userStatus?.username) {
+    throw new LeetCodeAuthError(
+      "LeetCode session is not signed in — credentials may be invalid or expired"
+    );
+  }
+
+  return {
+    username: data.userStatus.username,
+    realName: data.userStatus.realName,
+    ranking: data.userStatus.ranking,
+  };
+}
+
+export interface LeetCodeSubmission {
+  id: string;
+  title: string;
+  titleSlug: string;
+  timestamp: string; // Unix timestamp as string
+  statusDisplay: string; // "Accepted", "Wrong Answer", etc.
+  lang: string;
+  runtime: string;
+  memory: string;
+  // questionId comes from the problem, fetched separately when needed
+}
+
+/**
+ * Fetch recent submissions from LeetCode.
+ * Returns newest-first, paginated.
+ */
+export async function fetchRecentSubmissions(
+  session: string,
+  csrfToken: string,
+  limit: number = 20,
+  offset: number = 0
+): Promise<{ submissions: LeetCodeSubmission[]; hasMore: boolean }> {
+  const query = `
+    query submissionList($offset: Int!, $limit: Int!) {
+      submissionList(offset: $offset, limit: $limit) {
+        lastKey
+        hasNext
+        submissions {
+          id
+          title
+          titleSlug
+          timestamp
+          statusDisplay
+          lang
+          runtime
+          memory
+        }
+      }
+    }
+  `;
+
+  const data = (await leetcodeGraphQL(
+    query,
+    { offset, limit },
+    { session, csrfToken }
+  )) as {
+    submissionList: {
+      lastKey: string;
+      hasNext: boolean;
+      submissions: LeetCodeSubmission[];
+    };
+  };
+
+  return {
+    submissions: data.submissionList.submissions,
+    hasMore: data.submissionList.hasNext,
+  };
+}
+
+export interface LeetCodeSubmissionDetail {
+  code: string;
+  lang: string;
+  runtime: string;
+  memory: string;
+  statusDisplay: string;
+  timestamp: string;
+  question: {
+    questionId: string;
+    titleSlug: string;
+    title: string;
+  };
+}
+
+/**
+ * Fetch the full detail (including source code) of a specific submission.
+ */
+export async function fetchSubmissionDetail(
+  session: string,
+  csrfToken: string,
+  submissionId: string
+): Promise<LeetCodeSubmissionDetail> {
+  const query = `
+    query submissionDetails($submissionId: Int!) {
+      submissionDetails(submissionId: $submissionId) {
+        code
+        lang {
+          name
+          verboseName
+        }
+        runtime
+        runtimeDisplay
+        memory
+        memoryDisplay
+        timestamp
+        statusDisplay
+        question {
+          questionId
+          titleSlug
+          title
+        }
+      }
+    }
+  `;
+
+  const data = (await leetcodeGraphQL(
+    query,
+    { submissionId: parseInt(submissionId, 10) },
+    { session, csrfToken }
+  )) as {
+    submissionDetails: {
+      code: string;
+      lang: { name: string; verboseName: string };
+      runtime: string;
+      runtimeDisplay: string;
+      memory: string;
+      memoryDisplay: string;
+      timestamp: string;
+      statusDisplay: string;
+      question: {
+        questionId: string;
+        titleSlug: string;
+        title: string;
+      };
+    };
+  };
+
+  const d = data.submissionDetails;
+
+  return {
+    code: d.code,
+    lang: d.lang.name,
+    runtime: d.runtimeDisplay || d.runtime,
+    memory: d.memoryDisplay || d.memory,
+    statusDisplay: d.statusDisplay,
+    timestamp: d.timestamp,
+    question: d.question,
+  };
+}
