@@ -14,14 +14,15 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-screen flex flex-col">
       {/* Minimal nav */}
-      <nav className="relative z-10 w-full p-6 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/profile_photo.jpg" alt="Logo" className="w-8 h-8 rounded-full object-cover shadow-sm" />
+      <nav className="absolute top-0 left-0 right-0 z-10 w-full p-6 flex justify-between items-center">
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="w-8 h-8 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center text-[var(--color-accent)] ring-2 ring-[var(--color-accent)]/30 group-hover:shadow-[var(--shadow-glow)] transition-all duration-300">
+            <Code2 className="w-5 h-5" />
+          </div>
           <span className="font-bold tracking-tight text-[var(--color-text-primary)]">
             LeetGit<span className="text-[var(--color-accent)]">Sj</span>
           </span>
-        </div>
+        </Link>
         <ThemeToggle />
       </nav>
 
