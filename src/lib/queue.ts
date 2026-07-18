@@ -34,7 +34,7 @@ export const SYNC_QUEUE_NAME = "leetpush-sync";
 
 // The Queue instance for adding jobs
 export const syncQueue = new Queue(SYNC_QUEUE_NAME, {
-  connection: connection as any,
+  connection: connection as never,
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -46,12 +46,12 @@ export const syncQueue = new Queue(SYNC_QUEUE_NAME, {
   },
 });
 
-export const syncQueueEvents = new QueueEvents(SYNC_QUEUE_NAME, { connection: connection as any });
+export const syncQueueEvents = new QueueEvents(SYNC_QUEUE_NAME, { connection: connection as never });
 
 export const AUTO_CONNECT_QUEUE_NAME = "leetpush-auto-connect";
 
 export const autoConnectQueue = new Queue(AUTO_CONNECT_QUEUE_NAME, {
-  connection: connection as any,
+  connection: connection as never,
   defaultJobOptions: {
     attempts: 1, // Don't retry auto-login — if it hits a CAPTCHA, it fails immediately
     removeOnComplete: { age: 3600 },
@@ -60,7 +60,7 @@ export const autoConnectQueue = new Queue(AUTO_CONNECT_QUEUE_NAME, {
 });
 
 export const autoConnectQueueEvents = new QueueEvents(AUTO_CONNECT_QUEUE_NAME, {
-  connection: connection as any,
+  connection: connection as never,
 });
 
 // Initialize the Worker if we're running in a worker context
@@ -101,7 +101,7 @@ export function startWorker() {
       }
     },
     {
-      connection: connection as any,
+      connection: connection as never,
       concurrency: 5,
     }
   );
@@ -156,7 +156,7 @@ export function startWorker() {
       return { username };
     },
     {
-      connection: connection as any,
+      connection: connection as never,
       concurrency: 2, // Playwright uses memory, keep concurrency low
     }
   );

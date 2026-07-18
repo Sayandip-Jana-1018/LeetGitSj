@@ -1,22 +1,22 @@
-# LeetGitSj
+# LeetGitSj 🚀
 
-LeetGitSj is an automated platform that syncs your accepted LeetCode submissions directly to a GitHub repository, turning your coding practice into a green contribution graph. No browser extensions required—everything runs automatically in the background.
+LeetGitSj is an automated platform that syncs your accepted LeetCode submissions directly to a GitHub repository, turning your coding practice into a green contribution graph. No browser extensions required—everything runs automatically in the background!
 
-## 🚀 Features
+## ✨ Features
 
-- **Automatic Syncing**: Every accepted LeetCode submission is automatically committed to your linked GitHub repository.
-- **No Browser Extensions**: Works fully server-side. Solve on your phone, tablet, or another computer, and it still syncs.
-- **Background Worker**: Powered by a robust background job queue (BullMQ + Redis) that reliably processes submissions.
+- **Automatic Background Sync**: Every accepted LeetCode submission is automatically committed to your linked GitHub repository.
+- **Zero Configuration**: Works fully server-side without needing browser extensions. Solve on your phone, tablet, or PC, and it still syncs seamlessly.
+- **Smart Queue System**: Powered by a robust background job queue (BullMQ + Redis) that reliably processes your submissions without rate-limiting issues.
 - **Secure Authentication**: Uses GitHub OAuth for user login and a dedicated GitHub App for secure, scoped repository write access.
-- **Premium UI**: Built with a stunning, modern dark-mode interface featuring glassmorphism and a dynamic, floating smoke particle background.
+- **Premium Dark Mode UI**: Built with a stunning, modern dark-mode interface featuring glassmorphism, dynamic floating smoke particles, tilt effects, and smooth micro-animations.
 
 ## 🛠 Tech Stack
 
 - **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Server Actions)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) with custom design tokens and Framer Motion for animations.
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/) with custom design tokens and Framer Motion for beautiful animations.
 - **Database**: [PostgreSQL (Neon)](https://neon.tech/) with [Prisma ORM](https://www.prisma.io/).
 - **Authentication**: [Auth.js (NextAuth v5)](https://authjs.dev/)
-- **Background Jobs**: [BullMQ](https://docs.bullmq.io/) with Upstash Redis.
+- **Background Jobs**: [BullMQ](https://docs.bullmq.io/) with Upstash Redis for scalable background processing.
 - **Infrastructure**: Designed for deployment on Vercel with a custom Node.js worker for the background queue.
 
 ## 📦 Local Development
@@ -40,8 +40,6 @@ Then, fill out the variables in `.env.local`:
 - **Neon Postgres**: Get your database connection string.
 - **Upstash Redis**: Get your Redis connection string.
 
-*(Note: Never commit `.env` or `.env.local` to version control. The repository ignores these by default, except for `.env.example`.)*
-
 ### 3. Initialize the database
 Push the schema to your Neon database:
 ```bash
@@ -61,3 +59,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 1. **Sign In**: Authenticate securely using your GitHub account.
 2. **Link LeetCode**: Provide your LeetCode session token and connect the official LeetGitSj GitHub App to the repository where you want your code saved.
 3. **Solve & Sync**: Whenever you solve a problem on LeetCode, the platform detects the accepted submission and dispatches a background job. The worker processes the code and commits it directly to your GitHub repo.
+
+## 📄 License
+MIT License

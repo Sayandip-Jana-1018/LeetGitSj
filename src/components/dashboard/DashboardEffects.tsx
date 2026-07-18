@@ -22,23 +22,23 @@ export function FirstSyncCelebration({ isFirstSync, totalSynced, streak }: Props
     firedRef.current = true;
     sessionStorage.setItem(sessionKey, "1");
 
-    const duration = 3000;
+    const duration = 4000;
     const end = Date.now() + duration;
 
     const frame = () => {
       confetti({
-        particleCount: 3,
+        particleCount: 15,
         angle: 60,
-        spread: 55,
+        spread: 65,
         origin: { x: 0 },
-        colors: ["#0d9488", "#34d399", "#a7f3d0"],
+        colors: ["#0d9488", "#34d399", "#a7f3d0", "#ffffff"],
       });
       confetti({
-        particleCount: 3,
+        particleCount: 15,
         angle: 120,
-        spread: 55,
+        spread: 65,
         origin: { x: 1 },
-        colors: ["#0d9488", "#34d399", "#a7f3d0"],
+        colors: ["#0d9488", "#34d399", "#a7f3d0", "#ffffff"],
       });
 
       if (Date.now() < end) {
@@ -69,7 +69,7 @@ export function AnimatedCounter({
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (value === 0) { setDisplay(0); return; }
+    if (value === 0) { requestAnimationFrame(() => setDisplay(0)); return; }
 
     startRef.current = null;
 
@@ -99,9 +99,13 @@ export function AnimatedCounter({
 export function TiltCard({
   children,
   className = "",
+  maxTilt = 6,
+  disableOnMobile = true,
 }: {
   children: React.ReactNode;
   className?: string;
+  maxTilt?: number;
+  disableOnMobile?: boolean;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -111,11 +115,13 @@ export function TiltCard({
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+    if (disableOnMobile && window.innerWidth < 768) return;
+
     const cx = rect.width / 2;
     const cy = rect.height / 2;
-    // Max tilt: 8°
-    const rotateX = ((y - cy) / cy) * -6;
-    const rotateY = ((x - cx) / cx) * 6;
+    
+    const rotateX = ((y - cy) / cy) * -maxTilt;
+    const rotateY = ((x - cx) / cx) * maxTilt;
     card.style.transform = `perspective(700px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02,1.02,1.02)`;
   };
 

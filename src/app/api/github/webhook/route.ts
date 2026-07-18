@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       // When uninstalled or suspended, mark as inactive
       if (action === "deleted" || action === "suspend") {
         await prisma.gitHubInstallation.updateMany({
-          where: { installationId: installation.id.toString() },
+          where: { installationId: installation.id },
           data: { isActive: false },
         });
         console.log(`GitHub App ${action}: installation ${installation.id}`);
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       // When unsuspended, mark as active
       if (action === "unsuspend") {
         await prisma.gitHubInstallation.updateMany({
-          where: { installationId: installation.id.toString() },
+          where: { installationId: installation.id },
           data: { isActive: true },
         });
       }

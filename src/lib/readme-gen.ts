@@ -37,8 +37,8 @@ async function generateWithGemini(input: ReadmeInput): Promise<string> {
   if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  // gemini-2.5-flash-lite: fastest, cheapest, free tier friendly
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+  // gemini-2.5-flash: fast, capable, free tier friendly
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `You are helping document a LeetCode solution for a developer's GitHub portfolio.
 

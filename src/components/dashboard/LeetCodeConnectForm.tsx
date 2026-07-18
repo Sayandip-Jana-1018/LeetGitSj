@@ -96,14 +96,14 @@ export function LeetCodeConnectForm({
   return (
     <div className="space-y-5">
       {isExpired && (
-        <div className="p-3.5 rounded-[var(--radius-md)] bg-[var(--color-warning-subtle)] border border-[var(--color-warning)]/30 text-sm text-[var(--color-text-primary)] flex items-start gap-2.5">
-          <AlertCircle className="w-4 h-4 text-[var(--color-warning)] shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-[var(--radius-md)] bg-[var(--color-warning-subtle)] border border-[var(--color-warning)]/30 text-sm text-[var(--color-text-primary)] flex flex-col items-center text-center gap-1.5 mx-auto">
+          <AlertCircle className="w-5 h-5 text-[var(--color-warning)]" />
           <span><strong>Session Expired:</strong> LeetCode sessions expire periodically. Reconnect to resume syncing.</span>
         </div>
       )}
 
       {/* Mode Tabs */}
-      <div className="flex gap-1 p-1 rounded-[var(--radius-md)] bg-[var(--color-surface-hover)] w-fit">
+      <div className="flex gap-1 p-1 rounded-[var(--radius-md)] bg-[var(--color-surface-hover)] w-fit mx-auto">
         <button
           onClick={() => { setMode("manual"); setError(""); }}
           className={`flex items-center gap-1.5 px-4 py-1.5 rounded-[var(--radius-sm)] text-sm font-medium transition-all ${
@@ -131,21 +131,21 @@ export function LeetCodeConnectForm({
 
       {/* Error / Success banners */}
       {error && (
-        <div className="p-3 rounded-[var(--radius-md)] bg-[var(--color-danger-subtle)] text-sm text-[var(--color-danger)] flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+        <div className="p-3 rounded-[var(--radius-md)] bg-[var(--color-danger-subtle)] text-sm text-[var(--color-danger)] flex flex-col items-center text-center gap-1.5 mx-auto">
+          <AlertCircle className="w-5 h-5 shrink-0" />
           {error}
         </div>
       )}
       {success && (
-        <div className="p-3 rounded-[var(--radius-md)] bg-[var(--color-success-subtle)] text-sm text-[var(--color-success)] flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" />
+        <div className="p-3 rounded-[var(--radius-md)] bg-[var(--color-success-subtle)] text-sm text-[var(--color-success)] flex flex-col items-center text-center gap-1.5 mx-auto">
+          <CheckCircle2 className="w-5 h-5" />
           Successfully connected to LeetCode! First sync is in progress.
         </div>
       )}
       {autoStatus === "queued" && (
-        <div className="p-3.5 rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)] border border-[var(--color-accent)]/20 text-sm text-[var(--color-text-primary)] flex items-start gap-2.5">
-          <Sparkles className="w-4 h-4 text-[var(--color-accent)] shrink-0 mt-0.5 animate-pulse" />
-          <div>
+        <div className="p-3.5 rounded-[var(--radius-md)] bg-[var(--color-accent-subtle)] border border-[var(--color-accent)]/20 text-sm text-[var(--color-text-primary)] flex flex-col items-center text-center gap-1.5 mx-auto">
+          <Sparkles className="w-5 h-5 text-[var(--color-accent)] animate-pulse" />
+          <div className="text-center">
             <p className="font-medium">Auto-connect queued!</p>
             <p className="text-[var(--color-text-secondary)] mt-0.5">{autoMessage}</p>
           </div>
@@ -155,41 +155,39 @@ export function LeetCodeConnectForm({
       {/* MANUAL TAB */}
       {mode === "manual" && (
         <form onSubmit={handleManualSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">LEETCODE_SESSION</label>
+          <div className="flex flex-col items-center">
+            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-2 text-center">LEETCODE_SESSION</label>
             <input
-              type="password"
+              type="text"
               value={session}
               onChange={(e) => setSession(e.target.value)}
               placeholder="Paste LEETCODE_SESSION cookie..."
-              className="w-full px-3 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-all font-mono text-sm"
+              className="w-full px-3 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-all font-mono text-sm text-center"
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">csrftoken</label>
+          <div className="flex flex-col items-center">
+            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-2 text-center">csrftoken</label>
             <input
-              type="password"
+              type="text"
               value={csrfToken}
               onChange={(e) => setCsrfToken(e.target.value)}
               placeholder="Paste csrftoken cookie..."
-              className="w-full px-3 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-all font-mono text-sm"
+              className="w-full px-3 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-all font-mono text-sm text-center"
               required
             />
           </div>
-          <div className="p-3 bg-[var(--color-surface-elevated)] rounded-[var(--radius-md)] border border-[var(--color-border-subtle)]">
-            <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
-              <strong className="text-[var(--color-text-secondary)]">How to find these:</strong> Open LeetCode → Press <kbd className="px-1 py-0.5 bg-[var(--color-surface-hover)] rounded text-[10px] font-mono">F12</kbd> → Application tab → Cookies → <code className="text-[10px] bg-[var(--color-surface-hover)] px-1 rounded">leetcode.com</code> → copy <code className="text-[10px]">LEETCODE_SESSION</code> and <code className="text-[10px]">csrftoken</code>.
-            </p>
+
+          <div className="flex justify-center pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium rounded-[var(--radius-md)] bg-[var(--color-accent)] text-[var(--color-accent-foreground)] hover:bg-[var(--color-accent-hover)] transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              {loading ? "Verifying & Encrypting..." : "Connect LeetCode"}
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-[var(--radius-md)] bg-[var(--color-accent)] text-[var(--color-accent-foreground)] hover:bg-[var(--color-accent-hover)] transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-          >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {loading ? "Verifying & Encrypting..." : "Connect LeetCode"}
-          </button>
         </form>
       )}
 
@@ -199,39 +197,41 @@ export function LeetCodeConnectForm({
           <div className="p-3.5 bg-[var(--color-surface-elevated)] rounded-[var(--radius-md)] border border-[var(--color-border-subtle)] text-xs text-[var(--color-text-secondary)] leading-relaxed">
             <strong className="text-[var(--color-text-primary)]">How it works:</strong> We launch a secure background browser session that logs into LeetCode and extracts your session cookies automatically. Credentials are encrypted immediately and never logged. If LeetCode shows a CAPTCHA, please use Manual Connect.
           </div>
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">LeetCode Username or Email</label>
+          <div className="flex flex-col items-center">
+            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-2 text-center">LeetCode Username or Email</label>
             <input
               type="text"
               value={autoUser}
               onChange={(e) => setAutoUser(e.target.value)}
               placeholder="your_leetcode_username"
-              className="w-full px-3 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-all"
+              className="w-full px-3 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-all text-center"
               required
               autoComplete="username"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">LeetCode Password</label>
+          <div className="flex flex-col items-center">
+            <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-2 text-center">LeetCode Password</label>
             <input
-              type="password"
+              type="text"
               value={autoPass}
               onChange={(e) => setAutoPass(e.target.value)}
               placeholder="••••••••••••"
-              className="w-full px-3 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-all"
+              className="w-full px-3 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-all text-center"
               required
               autoComplete="current-password"
             />
           </div>
-          <button
-            type="submit"
-            disabled={loading || autoStatus === "queued"}
-            className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-[var(--radius-md)] bg-[var(--color-accent)] text-[var(--color-accent-foreground)] hover:bg-[var(--color-accent-hover)] transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-            {loading ? "Submitting..." : autoStatus === "queued" ? "Queued — checking soon..." : "Auto-Connect LeetCode"}
-          </button>
-          <p className="text-xs text-[var(--color-text-muted)]">Limited to 3 attempts per 10 minutes.</p>
+          <div className="flex flex-col items-center pt-2">
+            <button
+              type="submit"
+              disabled={loading || autoStatus === "queued"}
+              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium rounded-[var(--radius-md)] bg-[var(--color-accent)] text-[var(--color-accent-foreground)] hover:bg-[var(--color-accent-hover)] transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+              {loading ? "Submitting..." : autoStatus === "queued" ? "Queued — checking soon..." : "Auto-Connect LeetCode"}
+            </button>
+            <p className="text-xs text-[var(--color-text-muted)] mt-3">Limited to 3 attempts per 10 minutes.</p>
+          </div>
         </form>
       )}
     </div>

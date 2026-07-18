@@ -1,3 +1,7 @@
+import { config } from "dotenv";
+config({ path: ".env.local" });
+config({ path: ".env" }); // fallback
+
 import { startWorker } from "./lib/queue";
 
 console.log("🚀 Starting LeetPush Background Worker...");

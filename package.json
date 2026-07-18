@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently --names \"next,worker\" --prefix-colors \"cyan,yellow\" \"next dev\" \"tsx src/worker.ts\"",
+    "dev": "concurrently --names \"next,worker\" --prefix-colors \"cyan,yellow\" \"next dev\" \"tsx --env-file=.env.local src/worker.ts\"",
     "dev:next": "next dev",
     "dev:worker": "tsx src/worker.ts",
     "build": "next build",
     "start": "next start",
-    "worker": "tsx src/worker.ts",
+    "worker": "tsx --env-file=.env.local src/worker.ts",
     "lint": "eslint"
   },
   "dependencies": {

@@ -16,6 +16,7 @@ export default function LoginPage() {
       {/* Minimal nav */}
       <nav className="relative z-10 w-full p-6 flex justify-between items-center">
         <div className="flex items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/profile_photo.jpg" alt="Logo" className="w-8 h-8 rounded-full object-cover shadow-sm" />
           <span className="font-bold tracking-tight text-[var(--color-text-primary)]">
             LeetGit<span className="text-[var(--color-accent)]">Sj</span>

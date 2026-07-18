@@ -149,7 +149,6 @@ export class LeetCodeRateLimitError extends Error {
 export interface LeetCodeUserProfile {
   username: string;
   realName: string;
-  ranking: number;
 }
 
 /**
@@ -165,7 +164,6 @@ export async function verifyCredentials(
       userStatus {
         username
         realName
-        ranking
         isSignedIn
       }
     }
@@ -175,7 +173,6 @@ export async function verifyCredentials(
     userStatus: {
       username: string;
       realName: string;
-      ranking: number;
       isSignedIn: boolean;
     };
   };
@@ -189,7 +186,6 @@ export async function verifyCredentials(
   return {
     username: data.userStatus.username,
     realName: data.userStatus.realName,
-    ranking: data.userStatus.ranking,
   };
 }
 
@@ -380,4 +376,106 @@ export async function fetchProblemMeta(
     // it usually requires hitting the specific submission detail metric endpoint.
     // We'll leave these undefined for now, or you can expand this to fetch them.
   };
+}
+
+export interface LeetCodeUserStats {
+  totalSolved: number;
+  easySolved: number;
+  mediumSolved: number;
+  hardSolved: number;
+  ranking: number;
+  reputation: number;
+  starRating: number;
+}
+
+/**
+ * Fetch a user's public profile stats.
+ * We can pass the session/csrf if available, otherwise it works publicly for public profiles.
+ */
+export async function fetchUserProfile(
+  session: string,
+  csrfToken: string,
+  username: string
+): Promise<LeetCodeUserStats> {
+  const query = `
+    query userPublicProfile($username: String!) {
+      matchedUser(username: $username) {
+        profile {
+          ranking
+          reputation
+          starRating
+        }
+        submitStatsGlobal {
+          acSubmissionNum {
+            difficulty
+            count
+          }
+        }
+      }
+    }
+  `;
+
+  const data = (await leetcodeGraphQL(
+    query,
+    { username },
+    { session, csrfToken }
+  )) as {
+    matchedUser: {
+      profile: { ranking: number; reputation: number; starRating: number };
+      submitStatsGlobal: {
+        acSubmissionNum: Array<{ difficulty: string; count: number }>;
+      };
+    };
+  };
+
+  const user = data.matchedUser;
+  if (!user) throw new Error("User not found on LeetCode");
+
+  const stats = user.submitStatsGlobal.acSubmissionNum;
+  const getCount = (diff: string) => stats.find((s) => s.difficulty === diff)?.count || 0;
+
+  return {
+    totalSolved: getCount("All"),
+    easySolved: getCount("Easy"),
+    mediumSolved: getCount("Medium"),
+    hardSolved: getCount("Hard"),
+    ranking: user.profile.ranking,
+    reputation: user.profile.reputation,
+    starRating: user.profile.starRating,
+  };
+}
+
+/**
+ * Fetch a user's submission calendar.
+ * Returns a JSON string mapping Unix timestamps to submission counts.
+ */
+export async function fetchUserCalendar(
+  session: string,
+  csrfToken: string,
+  username: string
+): Promise<string> {
+  const query = `
+    query userProfileCalendar($username: String!, $year: Int) {
+      matchedUser(username: $username) {
+        userCalendar(year: $year) {
+          submissionCalendar
+        }
+      }
+    }
+  `;
+
+  const data = (await leetcodeGraphQL(
+    query,
+    { username },
+    { session, csrfToken }
+  )) as {
+    matchedUser: {
+      userCalendar: {
+        submissionCalendar: string;
+      };
+    };
+  };
+
+  if (!data.matchedUser) return "{}";
+  return data.matchedUser.userCalendar.submissionCalendar;
 }

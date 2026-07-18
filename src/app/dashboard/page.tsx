@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/purity */
+/* eslint-disable @next/next/no-img-element */
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
@@ -6,17 +8,19 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  RefreshCw,
   Flame,
   GitCommit,
-  Trophy,
   Zap,
+  ChevronRight,
 } from "lucide-react";
 import { Github } from "@/components/icons/github";
 import Link from "next/link";
+import { decrypt } from "@/lib/encryption";
 import { Heatmap } from "@/components/dashboard/Heatmap";
 import { SyncTriggerButton } from "@/components/dashboard/SyncTriggerButton";
 import { TiltCard, AnimatedCounter, FirstSyncCelebration } from "@/components/dashboard/DashboardEffects";
+import { LeetCodeStats } from "@/components/dashboard/LeetCodeStats";
+import { LeetCodeHeatmap } from "@/components/dashboard/LeetCodeHeatmap";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +30,7 @@ export default async function DashboardOverview() {
 
   const userId = session.user.id;
 
-  const [leetcodeCredential, githubInstallation, lastSync, totalSynced, recentSubmissions] =
+  const [leetcodeCredential, githubInstallation, , totalSynced, recentSubmissions] =
     await Promise.all([
       prisma.leetCodeCredential.findUnique({ where: { userId } }),
       prisma.gitHubInstallation.findUnique({ where: { userId } }),
@@ -35,7 +39,7 @@ export default async function DashboardOverview() {
       prisma.syncedSubmission.findMany({
         where: { userId },
         orderBy: { syncedAt: "desc" },
-        take: 8,
+        take: 5,
         select: {
           id: true,
           questionId: true,
@@ -49,6 +53,26 @@ export default async function DashboardOverview() {
         },
       }),
     ]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let leetcodeProfile: any = null;
+  let leetcodeCalendar: string = "{}";
+
+  if (leetcodeCredential?.status === "ACTIVE" && leetcodeCredential.leetcodeUsername) {
+    try {
+      const { fetchUserProfile, fetchUserCalendar } = await import("@/lib/leetcode");
+      const sessionCookie = decrypt(leetcodeCredential.encryptedSession);
+      const csrfToken = decrypt(leetcodeCredential.encryptedCsrfToken);
+      const [profile, calendar] = await Promise.all([
+        fetchUserProfile(sessionCookie, csrfToken, leetcodeCredential.leetcodeUsername),
+        fetchUserCalendar(sessionCookie, csrfToken, leetcodeCredential.leetcodeUsername),
+      ]);
+      leetcodeProfile = profile;
+      leetcodeCalendar = calendar;
+    } catch (e) {
+      console.error("Failed to fetch LeetCode stats", e);
+    }
+  }
 
   const needsSetup = !leetcodeCredential || !githubInstallation;
   const isFirstSync = totalSynced > 0 && recentSubmissions.length > 0 &&
@@ -96,28 +120,31 @@ export default async function DashboardOverview() {
       : "text-[var(--color-text-muted)] bg-[var(--color-surface-hover)]";
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-10 animate-in fade-in duration-500">
       {/* First-sync confetti — client-only */}
       <FirstSyncCelebration isFirstSync={isFirstSync} totalSynced={totalSynced} streak={streak} />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
-            Overview
-          </h1>
-          <p className="text-sm text-[var(--color-text-secondary)]">
-            Your LeetCode → GitHub sync at a glance.
-          </p>
+
+      {/* Setup / Sync Header */}
+      <div className="text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-[var(--color-text-primary)]">
+          Overview
+        </h1>
+        <p className="text-sm text-[var(--color-text-muted)] mt-1.5">
+          Your LeetCode → GitHub sync at a glance.
+        </p>
+        <div className="mt-4">
+          <SyncTriggerButton disabled={needsSetup} />
         </div>
-        <SyncTriggerButton disabled={needsSetup} />
       </div>
 
       {/* Setup alert */}
       {needsSetup && (
-        <div className="rounded-[var(--radius-lg)] bg-[var(--color-warning-subtle)] border border-[var(--color-warning)]/30 p-5 flex items-start gap-4">
-          <AlertCircle className="w-5 h-5 text-[var(--color-warning)] mt-0.5 shrink-0" />
-          <div className="flex-1">
+        <div className="rounded-2xl bg-[var(--color-warning)]/10 border border-[var(--color-warning)]/25 p-6 flex flex-col items-center justify-center text-center gap-3 backdrop-blur-sm">
+          <div className="w-10 h-10 rounded-xl bg-[var(--color-warning)]/15 flex items-center justify-center shrink-0">
+            <AlertCircle className="w-5 h-5 text-[var(--color-warning)]" />
+          </div>
+          <div className="flex-1 w-full">
             <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
               Action Required: Complete Setup
             </h3>
@@ -126,7 +153,7 @@ export default async function DashboardOverview() {
             </p>
             <Link
               href="/dashboard/settings"
-              className="inline-block mt-3 text-sm font-medium text-[var(--color-accent)] hover:underline"
+              className="inline-flex items-center justify-center gap-1 mt-3 text-sm font-semibold text-[var(--color-accent)] hover:underline"
             >
               Go to Settings →
             </Link>
@@ -135,78 +162,78 @@ export default async function DashboardOverview() {
       )}
 
       {/* Stats Grid — 3D Tilt Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <TiltCard className="p-5">
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wide">Total Synced</p>
-            <GitCommit className="w-4 h-4 text-[var(--color-accent)] opacity-70" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        <TiltCard className="p-6 text-center">
+          <div className="w-10 h-10 rounded-xl bg-[var(--color-accent)]/10 flex items-center justify-center mx-auto mb-3">
+            <GitCommit className="w-5 h-5 text-[var(--color-accent)]" />
           </div>
-          <div className="flex items-baseline gap-1.5">
+          <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Total Synced</p>
+          <div className="flex items-baseline gap-1.5 justify-center">
             <AnimatedCounter
               value={totalSynced}
-              className="text-3xl font-bold text-[var(--color-text-primary)]"
+              className="text-4xl font-bold text-[var(--color-text-primary)]"
             />
             <span className="text-sm text-[var(--color-text-muted)]">commits</span>
           </div>
         </TiltCard>
 
-        <TiltCard className="p-5">
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wide">Streak</p>
-            <Flame className="w-4 h-4 text-orange-400 opacity-80" />
+        <TiltCard className="p-6 text-center">
+          <div className="w-10 h-10 rounded-xl bg-[var(--color-accent)]/10 flex items-center justify-center mx-auto mb-3">
+            <Flame className="w-5 h-5 text-[var(--color-accent)]" />
           </div>
-          <div className="flex items-baseline gap-1.5">
+          <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Streak</p>
+          <div className="flex items-baseline gap-1.5 justify-center">
             <AnimatedCounter
               value={streak}
-              className={`text-3xl font-bold ${streak > 0 ? "text-[var(--color-success)]" : "text-[var(--color-text-muted)]"}`}
+              className={`text-4xl font-bold ${streak > 0 ? "text-[var(--color-success)]" : "text-[var(--color-text-muted)]"}`}
             />
             <span className="text-sm text-[var(--color-text-muted)]">days</span>
           </div>
         </TiltCard>
 
-        <TiltCard className="p-5 flex flex-col justify-between">
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wide">GitHub</p>
-            <Github className="w-4 h-4 text-[var(--color-text-muted)] opacity-70" />
+        <TiltCard className="p-6 text-center flex flex-col items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-elevated)] flex items-center justify-center mx-auto mb-3 border border-[var(--color-border-subtle)]">
+            <Github className="w-5 h-5 text-[var(--color-text-muted)]" />
           </div>
+          <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">GitHub</p>
           {githubInstallation?.isActive ? (
             <div>
-              <div className="flex items-center gap-1.5 text-sm mb-1">
+              <div className="flex items-center gap-1.5 text-sm mb-1 justify-center">
                 <CheckCircle2 className="w-4 h-4 text-[var(--color-success)] shrink-0" />
-                <span className="font-medium text-[var(--color-success)]">Connected</span>
+                <span className="font-semibold text-[var(--color-success)]">Connected</span>
               </div>
-              <p className="text-xs text-[var(--color-text-muted)] truncate" title={githubInstallation.repoFullName}>
+              <p className="text-xs text-[var(--color-text-muted)] truncate max-w-[150px]" title={githubInstallation.repoFullName}>
                 {githubInstallation.repoFullName}
               </p>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 text-sm">
+            <div className="flex items-center gap-1.5 text-sm justify-center">
               <XCircle className="w-4 h-4 text-[var(--color-danger)]" />
               <span className="text-[var(--color-text-muted)]">Not connected</span>
             </div>
           )}
         </TiltCard>
 
-        <TiltCard className="p-5 flex flex-col justify-between">
-          <div className="flex items-start justify-between mb-3">
-            <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wide">LeetCode</p>
-            <Zap className="w-4 h-4 text-yellow-400 opacity-70" />
+        <TiltCard className="p-6 text-center flex flex-col items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-[var(--color-accent)]/10 flex items-center justify-center mx-auto mb-3">
+            <Zap className="w-5 h-5 text-[var(--color-accent)]" />
           </div>
+          <p className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">LeetCode</p>
           {leetcodeCredential?.status === "ACTIVE" ? (
             <div>
-              <div className="flex items-center gap-1.5 text-sm mb-1">
+              <div className="flex items-center gap-1.5 text-sm mb-1 justify-center">
                 <CheckCircle2 className="w-4 h-4 text-[var(--color-success)] shrink-0" />
-                <span className="font-medium text-[var(--color-success)]">Active</span>
+                <span className="font-semibold text-[var(--color-success)]">Active</span>
               </div>
-              <p className="text-xs text-[var(--color-text-muted)] truncate">
+              <p className="text-xs text-[var(--color-text-muted)] truncate max-w-[150px]">
                 {leetcodeCredential.leetcodeUsername}
               </p>
             </div>
           ) : (
             <div>
-              <div className="flex items-center gap-1.5 text-sm mb-1">
+              <div className="flex items-center gap-1.5 text-sm mb-1 justify-center">
                 <XCircle className="w-4 h-4 text-[var(--color-danger)]" />
-                <span className="text-[var(--color-danger)] font-medium">
+                <span className="text-[var(--color-danger)] font-semibold">
                   {leetcodeCredential?.status === "EXPIRED" ? "Expired" : "Not connected"}
                 </span>
               </div>
@@ -222,23 +249,29 @@ export default async function DashboardOverview() {
 
       {/* Heatmap */}
       {!needsSetup && (
-        <div className="glass-card p-6 border border-[var(--color-border-subtle)]">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-base font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-[var(--color-accent)]" />
-              Contribution Graph
+        <div className="glass-card p-4 sm:p-7 border border-[var(--color-border-subtle)] backdrop-blur-xl rounded-2xl bg-[var(--color-surface)]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <h3 className="text-base font-semibold text-[var(--color-text-primary)] flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-[var(--color-accent)]/10 flex items-center justify-center shrink-0">
+                <GitCommit className="w-4 h-4 text-[var(--color-accent)]" />
+              </div>
+              GitHub Sync Graph
             </h3>
-            <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
+            <div className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] w-full sm:w-auto justify-end">
               Less
               <div className="flex gap-1">
                 {[0, 20, 40, 60, 80, 100].map((o) => (
                   <div
                     key={o}
-                    className="w-3 h-3 rounded-[2px]"
+                    className="w-[14px] h-[14px] rounded-[4px]"
                     style={{
                       background: o === 0
                         ? "var(--color-surface-elevated)"
-                        : `hsl(172, 85%, 45%, ${o / 100})`,
+                        : `hsl(var(--hue), 85%, 45%, ${Math.max(0.4, o / 100)})`,
+                      border: o === 0 
+                        ? "1px solid var(--color-border-subtle)"
+                        : `1px solid hsla(var(--hue), 85%, 45%, ${Math.max(0.3, o / 100 - 0.2)})`,
+                      boxShadow: o > 0 ? `0 0 ${o / 5}px hsla(var(--hue), 85%, 45%, ${o / 100})` : "none"
                     }}
                   />
                 ))}
@@ -246,124 +279,85 @@ export default async function DashboardOverview() {
               More
             </div>
           </div>
-          <Heatmap data={heatmapData} />
+          <div className="w-full">
+            <Heatmap data={heatmapData} />
+          </div>
         </div>
       )}
+      {/* LeetCode Profile Stats */}
+      {leetcodeProfile && (
+        <LeetCodeStats stats={leetcodeProfile} />
+      )}
 
-      {/* Bottom Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Syncs */}
-        <div className="glass-card flex flex-col">
-          <div className="p-5 border-b border-[var(--color-border-subtle)] flex items-center justify-between">
-            <h3 className="font-semibold text-[var(--color-text-primary)]">Recent Syncs</h3>
-            <Link href="/dashboard/activity" className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]">
-              View all
+
+      {/* LeetCode Heatmap */}
+      {!needsSetup && leetcodeCalendar !== "{}" && (
+        <LeetCodeHeatmap calendarJson={leetcodeCalendar} />
+      )}
+
+      {/* Recent Submissions */}
+      {!needsSetup && recentSubmissions.length > 0 && (
+        <div className="glass-card border border-[var(--color-border-subtle)] backdrop-blur-xl rounded-2xl overflow-hidden bg-[var(--color-surface)]">
+          <div className="px-7 py-5 border-b border-[var(--color-border-subtle)] flex items-center justify-between bg-[var(--color-surface-elevated)]">
+            <h3 className="text-base font-semibold text-[var(--color-text-primary)]">Recent Submissions</h3>
+            <Link href="/dashboard/activity" className="text-sm text-[var(--color-accent)] hover:underline">
+              View all →
             </Link>
           </div>
-          <div className="p-5 flex-1">
-            {recentSubmissions.length > 0 ? (
-              <div className="space-y-3">
-                {recentSubmissions.map((sub, i) => (
-                  <div
-                    key={sub.id}
-                    className="flex items-center justify-between group py-1 border-b border-[var(--color-border-subtle)] last:border-0"
-                    style={{ animationDelay: `${i * 60}ms` }}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-success)] shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-[var(--color-text-primary)] truncate">
-                          {sub.questionId}. {sub.problemTitle}
-                        </p>
-                        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                          {formatDistanceToNow(new Date(sub.syncedAt), { addSuffix: true })}
-                          {sub.runtime && ` · ${sub.runtime}`}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0 ml-2">
-                      {sub.difficulty && (
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${difficultyColor(sub.difficulty)}`}>
-                          {sub.difficulty}
-                        </span>
-                      )}
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] font-medium hidden sm:block">
-                        {sub.language}
+          <div className="divide-y divide-[var(--color-border-subtle)]">
+            {recentSubmissions.map((sub) => (
+              <a
+                key={sub.id}
+                href={sub.commitUrl || "#"}
+                target="_blank"
+                rel="noreferrer"
+                className="flex flex-col sm:flex-row sm:items-center justify-between px-7 py-4 group hover:bg-[var(--color-surface-elevated)] transition-colors gap-3 sm:gap-0"
+              >
+                <div className="flex items-start sm:items-center gap-4 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-[var(--color-surface-elevated)] border border-[var(--color-border-subtle)] flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-sm">
+                    <img
+                      src={`https://cdn.jsdelivr.net/gh/PKief/vscode-material-icon-theme@main/icons/${sub.language}.svg`}
+                      alt={sub.language}
+                      className="w-4 h-4 opacity-80"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-[var(--color-text-primary)] truncate group-hover:text-[var(--color-accent)] transition-colors">
+                      {sub.questionId}. {sub.problemTitle}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${difficultyColor(sub.difficulty)}`}>
+                        {sub.difficulty}
                       </span>
-                      {sub.commitUrl && (
-                        <a
-                          href={sub.commitUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors opacity-0 group-hover:opacity-100"
-                        >
-                          <Github className="w-4 h-4" />
-                        </a>
-                      )}
+                      <span className="text-xs text-[var(--color-text-muted)]">
+                        {formatDistanceToNow(new Date(sub.syncedAt), { addSuffix: true })}
+                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center py-8">
-                <RefreshCw className="w-8 h-8 text-[var(--color-text-muted)]/50 mb-3" />
-                <p className="text-sm text-[var(--color-text-secondary)]">No submissions synced yet.</p>
-                <p className="text-xs text-[var(--color-text-muted)] mt-1">
-                  {needsSetup ? "Complete setup to begin." : "Solve a problem on LeetCode to see it here."}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Sync Status */}
-        <div className="glass-card flex flex-col">
-          <div className="p-5 border-b border-[var(--color-border-subtle)]">
-            <h3 className="font-semibold text-[var(--color-text-primary)]">Sync Engine Status</h3>
-          </div>
-          <div className="p-5 flex-1 flex flex-col justify-center">
-            {lastSync ? (
-              <div className="space-y-3.5">
-                {[
-                  ["Last Run", formatDistanceToNow(new Date(lastSync.runAt), { addSuffix: true })],
-                  ["New Commits", String(lastSync.newSubmissionsCount)],
-                  ["Duration", `${lastSync.durationMs}ms`],
-                ].map(([label, value]) => (
-                  <div key={label} className="flex items-center justify-between">
-                    <span className="text-sm text-[var(--color-text-muted)]">{label}</span>
-                    <span className="text-sm font-medium text-[var(--color-text-primary)]">{value}</span>
-                  </div>
-                ))}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-[var(--color-text-muted)]">Status</span>
-                  <span
-                    className={`text-sm font-medium px-2.5 py-0.5 rounded-full ${
-                      lastSync.status === "SUCCESS" || lastSync.status === "NO_NEW"
-                        ? "bg-[var(--color-success-subtle)] text-[var(--color-success)]"
-                        : lastSync.status === "PARTIAL"
-                        ? "bg-[var(--color-warning-subtle)] text-[var(--color-warning)]"
-                        : "bg-[var(--color-danger-subtle)] text-[var(--color-danger)]"
-                    }`}
-                  >
-                    {lastSync.status}
-                  </span>
                 </div>
-                {lastSync.errorMessage && (
-                  <div className="mt-2 p-3 rounded-[var(--radius-md)] bg-[var(--color-danger-subtle)] border border-[var(--color-danger)]/20 text-xs text-[var(--color-danger)] break-words">
-                    {lastSync.errorMessage}
+                
+                <div className="flex items-center gap-6 sm:gap-4 pl-12 sm:pl-0">
+                  <div className="flex flex-col sm:items-end gap-1">
+                    <span className="text-[11px] text-[var(--color-text-muted)] flex items-center gap-1.5">
+                      <div className="w-3.5 h-3.5 rounded-full bg-[var(--color-success)]/10 flex items-center justify-center">
+                        <Zap className="w-2 h-2 text-[var(--color-success)]" />
+                      </div>
+                      {sub.runtime}
+                    </span>
+                    <span className="text-[11px] text-[var(--color-text-muted)] flex items-center gap-1.5">
+                      <div className="w-3.5 h-3.5 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center">
+                        <div className="w-1.5 h-1.5 bg-[var(--color-accent)] rounded-[1px]" />
+                      </div>
+                      {sub.memory}
+                    </span>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center">
-                <div className="w-2 h-2 rounded-full bg-[var(--color-success)] animate-pulse-dot mx-auto mb-3" />
-                <p className="text-sm text-[var(--color-text-primary)] font-medium">Engine is active</p>
-                <p className="text-xs text-[var(--color-text-muted)] mt-1">Waiting for first sync run.</p>
-              </div>
-            )}
+                  <ChevronRight className="w-4 h-4 text-[var(--color-text-muted)] group-hover:text-[var(--color-text-primary)] group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                </div>
+              </a>
+            ))}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

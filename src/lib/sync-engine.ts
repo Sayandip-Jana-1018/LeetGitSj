@@ -41,9 +41,10 @@ function buildFolderPath(questionId: string, titleSlug: string): string {
 export async function syncUserSubmissions(userId: string): Promise<SyncResult> {
   const startTime = Date.now();
 
-  const [credential, installation] = await Promise.all([
+  const [credential, installation, user] = await Promise.all([
     prisma.leetCodeCredential.findUnique({ where: { userId } }),
     prisma.gitHubInstallation.findUnique({ where: { userId } }),
+    prisma.user.findUnique({ where: { id: userId } })
   ]);
 
   if (!credential || credential.status !== "ACTIVE") {
@@ -154,7 +155,9 @@ export async function syncUserSubmissions(userId: string): Promise<SyncResult> {
               { path: `${folderPath}/README.md`, content: readme.content },
             ],
             commitMessage,
-            installation.defaultBranch || "main"
+            installation.defaultBranch || "main",
+            user?.name || undefined,
+            user?.email || undefined
           );
 
           // Record to database

@@ -61,51 +61,53 @@ export function Heatmap({ data }: HeatmapProps) {
     return { weeks: weeksList, monthLabels: months };
   }, [data]);
 
-  // GitHub contribution color scale logic
+  // GitHub contribution color scale logic - Aesthetic glowing teal
   const getColorClass = (count: number) => {
-    if (count === 0) return "bg-[var(--color-surface-elevated)]";
-    if (count <= 2) return "bg-[var(--color-accent)] opacity-40";
-    if (count <= 4) return "bg-[var(--color-accent)] opacity-60";
-    if (count <= 6) return "bg-[var(--color-accent)] opacity-80";
-    return "bg-[var(--color-accent)]";
+    if (count === 0) return "bg-[var(--color-surface-elevated)] border border-[var(--color-border-subtle)]";
+    if (count <= 1) return "bg-[var(--color-accent)]/40 border border-[var(--color-accent)]/30 shadow-[0_0_10px_hsla(var(--hue),85%,50%,0.15)]";
+    if (count <= 3) return "bg-[var(--color-accent)]/60 border border-[var(--color-accent)]/40 shadow-[0_0_15px_hsla(var(--hue),85%,50%,0.3)]";
+    if (count <= 5) return "bg-[var(--color-accent)]/80 border border-[var(--color-accent)]/60 shadow-[0_0_20px_hsla(var(--hue),85%,50%,0.5)]";
+    return "bg-[var(--color-accent)] border border-[var(--color-accent)] shadow-[0_0_25px_hsla(var(--hue),85%,50%,0.7)]";
   };
 
   return (
-    <div className="w-full overflow-x-auto pb-2">
-      <div className="min-w-max flex flex-col">
-        {/* Months header */}
-        <div className="flex h-5 relative text-xs text-[var(--color-text-muted)] mb-1">
-          {monthLabels.map((m, i) => (
-            <div 
-              key={i} 
-              className="absolute" 
-              style={{ left: `${m.offset * 14}px` }}
-            >
-              {m.label}
-            </div>
-          ))}
-        </div>
-        
-        <div className="flex gap-[4px]">
-          {/* Days of week labels */}
-          <div className="flex flex-col gap-[4px] text-[10px] text-[var(--color-text-muted)] pr-2 justify-between py-[4px]">
-            <span>Mon</span>
-            <span>Wed</span>
-            <span>Fri</span>
+    <div className="w-full overflow-x-auto pb-4 custom-scrollbar">
+      <div className="min-w-max flex flex-col items-center justify-center w-full">
+        <div className="flex flex-col">
+          {/* Months header */}
+          <div className="flex h-6 relative text-[11px] font-medium text-[var(--color-text-muted)] mb-2">
+            {monthLabels.map((m, i) => (
+              <div 
+                key={i} 
+                className="absolute" 
+                style={{ left: `${m.offset * 18}px` }}
+              >
+                {m.label}
+              </div>
+            ))}
           </div>
           
-          {/* Grid */}
-          {weeks.map((week, i) => (
-            <div key={i} className="flex flex-col gap-[4px]">
-              {week.map((day, j) => (
-                <div
-                  key={j}
-                  className={`w-2.5 h-2.5 rounded-sm ${day.inFuture ? 'opacity-0' : getColorClass(day.count)}`}
-                  title={!day.inFuture ? `${day.count} submissions on ${format(day.date, 'MMM d, yyyy')}` : ''}
-                />
-              ))}
+          <div className="flex gap-[4px]">
+            {/* Days of week labels */}
+            <div className="flex flex-col gap-[4px] text-[10px] font-medium text-[var(--color-text-muted)] pr-3 justify-between py-[2px] h-[106px]">
+              <span className="mt-1">Mon</span>
+              <span>Wed</span>
+              <span className="mb-1">Fri</span>
             </div>
-          ))}
+            
+            {/* Grid */}
+            {weeks.map((week, i) => (
+              <div key={i} className="flex flex-col gap-[4px]">
+                {week.map((day, j) => (
+                  <div
+                    key={j}
+                    className={`w-[14px] h-[14px] rounded-[4px] transition-all duration-300 hover:scale-125 hover:z-10 cursor-crosshair ${day.inFuture ? 'opacity-0' : getColorClass(day.count)}`}
+                    title={!day.inFuture ? `${day.count} submissions on ${format(day.date, 'MMM d, yyyy')}` : ''}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

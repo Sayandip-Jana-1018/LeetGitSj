@@ -1,22 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, CheckCircle2, Bell, Webhook, Badge, Copy, Check } from "lucide-react";
+import { Loader2, CheckCircle2, Badge, Copy, Check } from "lucide-react";
 
 interface SettingsData {
   notifyEmail: string | null;
   isPublicBadgeEnabled: boolean;
-  hasDiscordWebhook: boolean;
 }
 
 export function NotificationSettingsForm({ leetcodeUsername }: { leetcodeUsername?: string | null }) {
-  const [data, setData] = useState<SettingsData>({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_, setData] = useState<SettingsData>({
     notifyEmail: null,
     isPublicBadgeEnabled: false,
-    hasDiscordWebhook: false,
   });
   const [notifyEmail, setNotifyEmail] = useState("");
-  const [discordWebhook, setDiscordWebhook] = useState("");
   const [isPublicBadge, setIsPublicBadge] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -48,9 +46,6 @@ export function NotificationSettingsForm({ leetcodeUsername }: { leetcodeUsernam
         notifyEmail: notifyEmail.trim() || null,
         isPublicBadgeEnabled: isPublicBadge,
       };
-      if (discordWebhook.trim()) {
-        body.discordWebhookUrl = discordWebhook.trim();
-      }
 
       const res = await fetch("/api/user/settings", {
         method: "PATCH",
@@ -61,12 +56,10 @@ export function NotificationSettingsForm({ leetcodeUsername }: { leetcodeUsernam
       if (!res.ok) throw new Error(result.error || "Save failed");
 
       setSaved(true);
-      setDiscordWebhook(""); // clear for security
       setData((prev) => ({
         ...prev,
         notifyEmail: notifyEmail.trim() || null,
         isPublicBadgeEnabled: isPublicBadge,
-        hasDiscordWebhook: !!discordWebhook.trim() || prev.hasDiscordWebhook,
       }));
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
@@ -100,12 +93,9 @@ export function NotificationSettingsForm({ leetcodeUsername }: { leetcodeUsernam
       )}
 
       {/* Email Notifications */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 mb-3">
-          <Bell className="w-4 h-4 text-[var(--color-text-muted)]" />
-          <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Expiry Notifications</h3>
-        </div>
-        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5">
+      <div className="space-y-2 flex flex-col items-center">
+
+        <label className="block text-sm font-semibold text-[var(--color-text-primary)] mb-1 text-center">
           Notification Email
           <span className="ml-2 text-xs font-normal text-[var(--color-text-muted)]">(separate from login email)</span>
         </label>
@@ -114,45 +104,20 @@ export function NotificationSettingsForm({ leetcodeUsername }: { leetcodeUsernam
           value={notifyEmail}
           onChange={(e) => setNotifyEmail(e.target.value)}
           placeholder="you@example.com"
-          className="w-full px-3 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-all"
+          className="w-full px-3 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-all text-center"
         />
-        <p className="text-xs text-[var(--color-text-muted)]">
-          We'll send one email when your LeetCode session expires — never marketing.
-        </p>
-      </div>
-
-      {/* Discord Webhook */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 mb-2">
-          <Webhook className="w-4 h-4 text-[var(--color-text-muted)]" />
-          <label className="block text-sm font-semibold text-[var(--color-text-primary)]">
-            Discord Webhook
-            {data.hasDiscordWebhook && (
-              <span className="ml-2 text-xs font-normal text-[var(--color-success)]">✓ Configured</span>
-            )}
-          </label>
-        </div>
-        <input
-          type="url"
-          value={discordWebhook}
-          onChange={(e) => setDiscordWebhook(e.target.value)}
-          placeholder="https://discord.com/api/webhooks/..."
-          className="w-full px-3 py-2.5 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-all font-mono text-sm"
-        />
-        <p className="text-xs text-[var(--color-text-muted)]">
-          Stored encrypted at rest (AES-256-GCM). Enter a new URL to update.
+        <p className="text-xs text-[var(--color-text-muted)] text-center">
+          We&apos;ll send one email when your LeetCode session expires — never marketing.
         </p>
       </div>
 
       {/* Public Badge */}
-      <div className="p-4 rounded-[var(--radius-md)] border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Badge className="w-4 h-4 text-[var(--color-text-muted)]" />
-            <div>
-              <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Public SVG Badge</h3>
-              <p className="text-xs text-[var(--color-text-muted)]">Show your solved count &amp; streak on your GitHub profile</p>
-            </div>
+      <div className="p-4 rounded-xl border border-[var(--color-accent)]/15 bg-[var(--color-accent)]/5 backdrop-blur-md space-y-3 w-full shadow-[0_4px_20px_-10px_hsla(var(--hue),50%,50%,0.1)]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center text-center">
+            <Badge className="w-5 h-5 text-[var(--color-text-muted)] mb-1" />
+            <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Public SVG Badge</h3>
+            <p className="text-xs text-[var(--color-text-muted)]">Show solved count &amp; streak on GitHub</p>
           </div>
           <button
             onClick={() => setIsPublicBadge((v) => !v)}
@@ -171,10 +136,10 @@ export function NotificationSettingsForm({ leetcodeUsername }: { leetcodeUsernam
         </div>
 
         {isPublicBadge && (
-          <div className="pt-2 border-t border-[var(--color-border-subtle)] space-y-2">
+          <div className="pt-4 border-t border-[var(--color-border-subtle)] space-y-2 flex flex-col items-center text-center">
             <p className="text-xs text-[var(--color-text-muted)]">Add this to your GitHub README:</p>
-            <div className="flex items-center gap-2 p-2.5 bg-[var(--color-surface)] rounded-[var(--radius-md)] border border-[var(--color-border)]">
-              <code className="text-xs flex-1 text-[var(--color-text-secondary)] break-all font-mono">{badgeMarkdown}</code>
+            <div className="flex items-center gap-2 p-2.5 bg-[var(--color-accent)]/10 rounded-[var(--radius-md)] border border-[var(--color-accent)]/20 w-full justify-center">
+              <code className="text-xs text-[var(--color-text-secondary)] break-all font-mono text-center">{badgeMarkdown}</code>
               <button
                 onClick={handleCopyBadge}
                 className="shrink-0 p-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--color-surface-hover)] transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
@@ -185,6 +150,12 @@ export function NotificationSettingsForm({ leetcodeUsername }: { leetcodeUsernam
             </div>
           </div>
         )}
+      </div>
+
+      <div className="p-3 bg-[var(--color-accent)]/5 backdrop-blur-md rounded-[var(--radius-md)] border border-[var(--color-accent)]/15 text-center w-full shadow-[0_4px_20px_-10px_hsla(var(--hue),50%,50%,0.1)]">
+        <p className="text-xs text-[var(--color-text-muted)] leading-relaxed">
+          <strong className="text-[var(--color-text-secondary)]">How to find LeetCode cookies:</strong> Open LeetCode → Press <kbd className="px-1 py-0.5 bg-[var(--color-surface-hover)] rounded text-[10px] font-mono">F12</kbd> → Application tab → Cookies → <code className="text-[10px] bg-[var(--color-surface-hover)] px-1 rounded">leetcode.com</code> → copy <code className="text-[10px]">LEETCODE_SESSION</code> and <code className="text-[10px]">csrftoken</code>.
+        </p>
       </div>
 
       <button

@@ -60,33 +60,7 @@ async function sendEmailNotification(
   });
 }
 
-// ============================================================
-// Discord webhook
-// ============================================================
 
-async function sendDiscordNotification(
-  webhookUrl: string,
-  username: string,
-  appUrl: string
-): Promise<void> {
-  const reconnectUrl = `${appUrl}/dashboard/settings`;
-
-  await fetch(webhookUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      embeds: [
-        {
-          title: "⚠️ LeetCode session expired — sync paused",
-          description: `Hey **${username}**, your LeetCode connection expired and commits have stopped.\n\n[**Reconnect now →**](${reconnectUrl})`,
-          color: 0xef4444, // red
-          footer: { text: "LeetPush · You'll only get this message once per expiry" },
-          timestamp: new Date().toISOString(),
-        },
-      ],
-    }),
-  });
-}
 
 // ============================================================
 // Main export — fires once on expiry, re-arms after reconnect
@@ -102,7 +76,6 @@ export async function sendExpiryNotification(userId: string): Promise<void> {
         email: true,
         name: true,
         notifyEmail: true,
-        discordWebhookUrl: true,
         notificationSentAt: true,
         leetcodeCredential: { select: { lastVerifiedAt: true, leetcodeUsername: true } },
       },
@@ -130,18 +103,6 @@ export async function sendExpiryNotification(userId: string): Promise<void> {
         await sendEmailNotification(toEmail, displayName, appUrl);
       } catch (err) {
         errors.push(`email: ${err instanceof Error ? err.message : String(err)}`);
-      }
-    }
-
-    // Send Discord webhook (encrypt at rest — decrypt for sending)
-    if (user.discordWebhookUrl) {
-      try {
-        // discordWebhookUrl is stored encrypted; decrypt before use
-        const { decrypt } = await import("./encryption");
-        const webhookUrl = decrypt(user.discordWebhookUrl);
-        await sendDiscordNotification(webhookUrl, displayName, appUrl);
-      } catch (err) {
-        errors.push(`discord: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
 

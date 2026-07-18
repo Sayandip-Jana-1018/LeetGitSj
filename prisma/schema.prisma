@@ -19,7 +19,6 @@ model User {
   image              String?
   githubId           String?   @unique
   notifyEmail        String?
-  discordWebhookUrl  String?
   isPublicBadgeEnabled Boolean @default(false)
   notificationSentAt DateTime?
   createdAt          DateTime  @default(now())

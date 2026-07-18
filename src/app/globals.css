@@ -25,10 +25,11 @@
   --color-text-muted: hsl(220, 10%, 55%);
   --color-text-inverse: hsl(0, 0%, 100%);
 
-  --color-accent: hsl(172, 85%, 35%);
-  --color-accent-hover: hsl(172, 85%, 30%);
+  --hue: 172;
+  --color-accent: hsl(var(--hue), 85%, 35%);
+  --color-accent-hover: hsl(var(--hue), 85%, 30%);
   --color-accent-foreground: hsl(0, 0%, 100%);
-  --color-accent-subtle: hsl(172, 60%, 95%);
+  --color-accent-subtle: hsl(var(--hue), 60%, 95%);
 
   --color-success: hsl(142, 71%, 40%);
   --color-success-subtle: hsl(142, 60%, 95%);
@@ -43,7 +44,7 @@
   --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.04);
   --shadow-md: 0 4px 12px hsla(0, 0%, 0%, 0.06);
   --shadow-lg: 0 8px 30px hsla(0, 0%, 0%, 0.08);
-  --shadow-glow: 0 0 20px hsla(172, 85%, 35%, 0.15);
+  --shadow-glow: 0 0 20px hsla(var(--hue), 85%, 35%, 0.15);
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -54,37 +55,37 @@
 
 /* --- Dark Theme Tokens --- */
 [data-theme="dark"] {
-  --color-bg: hsl(222, 47%, 5%);
-  --color-surface: hsl(222, 40%, 8%);
-  --color-surface-elevated: hsl(222, 35%, 12%);
-  --color-surface-hover: hsl(222, 30%, 16%);
-  --color-border: hsl(222, 25%, 18%);
-  --color-border-subtle: hsl(222, 25%, 14%);
+  --color-bg: hsl(var(--hue), 15%, 5%);
+  --color-surface: hsla(var(--hue), 25%, 10%, 0.4);
+  --color-surface-elevated: hsla(var(--hue), 30%, 15%, 0.5);
+  --color-surface-hover: hsla(var(--hue), 35%, 20%, 0.6);
+  --color-border: hsla(var(--hue), 30%, 30%, 0.25);
+  --color-border-subtle: hsla(var(--hue), 30%, 25%, 0.15);
 
-  --color-text-primary: hsl(210, 40%, 96%);
-  --color-text-secondary: hsl(215, 20%, 70%);
-  --color-text-muted: hsl(215, 15%, 50%);
-  --color-text-inverse: hsl(222, 47%, 5%);
+  --color-text-primary: hsl(var(--hue), 10%, 96%);
+  --color-text-secondary: hsl(var(--hue), 15%, 75%);
+  --color-text-muted: hsl(var(--hue), 15%, 55%);
+  --color-text-inverse: hsl(var(--hue), 20%, 5%);
 
-  --color-accent: hsl(172, 85%, 50%);
-  --color-accent-hover: hsl(172, 85%, 55%);
-  --color-accent-foreground: hsl(222, 47%, 5%);
-  --color-accent-subtle: hsla(172, 85%, 50%, 0.1);
+  --color-accent: hsl(var(--hue), 85%, 50%);
+  --color-accent-hover: hsl(var(--hue), 85%, 55%);
+  --color-accent-foreground: hsl(var(--hue), 20%, 5%);
+  --color-accent-subtle: hsla(var(--hue), 85%, 50%, 0.1);
 
-  --color-success: hsl(142, 71%, 50%);
-  --color-success-subtle: hsla(142, 71%, 50%, 0.1);
-  --color-danger: hsl(0, 72%, 60%);
-  --color-danger-subtle: hsla(0, 72%, 51%, 0.1);
-  --color-warning: hsl(38, 92%, 55%);
-  --color-warning-subtle: hsla(38, 92%, 50%, 0.1);
+  --color-success: hsl(var(--hue), 70%, 50%);
+  --color-success-subtle: hsla(var(--hue), 70%, 50%, 0.1);
+  --color-danger: hsl(calc(var(--hue) + 180), 72%, 60%);
+  --color-danger-subtle: hsla(calc(var(--hue) + 180), 72%, 51%, 0.1);
+  --color-warning: hsl(var(--hue), 90%, 65%);
+  --color-warning-subtle: hsla(var(--hue), 90%, 65%, 0.1);
 
-  --color-glass: hsla(222, 40%, 10%, 0.7);
-  --color-glass-border: hsla(222, 25%, 25%, 0.5);
+  --color-glass: hsla(var(--hue), 25%, 12%, 0.5);
+  --color-glass-border: hsla(var(--hue), 35%, 35%, 0.25);
 
   --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.2);
   --shadow-md: 0 4px 12px hsla(0, 0%, 0%, 0.3);
   --shadow-lg: 0 8px 30px hsla(0, 0%, 0%, 0.4);
-  --shadow-glow: 0 0 30px hsla(172, 85%, 50%, 0.2);
+  --shadow-glow: 0 0 30px hsla(var(--hue), 85%, 50%, 0.2);
 }
 
 /* --- Map tokens to Tailwind v4 via @theme --- */
@@ -117,15 +118,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* --- Global Transitions (smooth theme switching) --- */
-*,
-*::before,
-*::after {
-  transition-property: background-color, border-color, color, box-shadow;
-  transition-duration: 150ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
+/* Global Transitions Removed to prevent Theme Switch Lag */
 /* Disable transitions for reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   *,

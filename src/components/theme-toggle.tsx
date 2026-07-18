@@ -14,7 +14,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
   return (
     <button
       onClick={toggle}
-      className={`relative inline-flex items-center justify-center w-9 h-9 rounded-[var(--radius-md)] bg-[var(--color-surface-elevated)] hover:bg-[var(--color-surface-hover)] border border-[var(--color-border-subtle)] cursor-pointer ${className}`}
+      className={`relative inline-flex items-center justify-center w-[36px] h-[36px] rounded-full bg-[var(--color-accent)]/10 hover:bg-[var(--color-accent)]/20 text-[var(--color-accent)] transition-all duration-300 hover:scale-105 cursor-pointer ${className}`}
       aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
     >
       <AnimatePresence mode="wait" initial={false}>
@@ -26,7 +26,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
             exit={{ rotate: 90, scale: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
           >
-            <Sun className="w-4 h-4 text-[var(--color-warning)]" />
+            <Sun className="w-4.5 h-4.5" />
           </motion.div>
         ) : (
           <motion.div
@@ -36,7 +36,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
             exit={{ rotate: -90, scale: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
           >
-            <Moon className="w-4 h-4 text-[var(--color-accent)]" />
+            <Moon className="w-4.5 h-4.5" />
           </motion.div>
         )}
       </AnimatePresence>

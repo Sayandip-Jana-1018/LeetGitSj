@@ -16,7 +16,7 @@ export function AuroraBackground() {
       {/* Animated blobs */}
       <motion.div
         className="aurora-blob w-[600px] h-[600px] top-[-10%] left-[-5%]"
-        style={{ background: "radial-gradient(circle, hsla(172, 85%, 50%, 0.3) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, hsla(var(--hue, 172), 85%, 50%, 0.3) 0%, transparent 70%)" }}
         animate={{
           x: [0, 50, -30, 20, 0],
           y: [0, -30, 50, -20, 0],
@@ -26,7 +26,7 @@ export function AuroraBackground() {
       />
       <motion.div
         className="aurora-blob w-[500px] h-[500px] top-[20%] right-[-10%]"
-        style={{ background: "radial-gradient(circle, hsla(260, 70%, 60%, 0.2) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, hsla(calc(var(--hue, 172) + 88), 70%, 60%, 0.2) 0%, transparent 70%)" }}
         animate={{
           x: [0, -40, 30, -15, 0],
           y: [0, 40, -20, 30, 0],
@@ -36,7 +36,7 @@ export function AuroraBackground() {
       />
       <motion.div
         className="aurora-blob w-[450px] h-[450px] bottom-[5%] left-[30%]"
-        style={{ background: "radial-gradient(circle, hsla(200, 80%, 55%, 0.2) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, hsla(calc(var(--hue, 172) + 28), 80%, 55%, 0.2) 0%, transparent 70%)" }}
         animate={{
           x: [0, 30, -50, 25, 0],
           y: [0, -25, 35, -10, 0],

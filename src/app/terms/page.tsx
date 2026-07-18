@@ -60,7 +60,7 @@ export default function TermsOfService() {
                 5. Limitation of Liability
               </h2>
               <p>
-                The service is provided "as is" without warranty of any kind. We do not guarantee continuous, uninterrupted access to the service. We are not liable for any data loss, account suspensions on third-party platforms, or other damages arising from the use of LeetPush.
+                The service is provided &quot;as is&quot; without warranty of any kind. We do not guarantee continuous, uninterrupted access to the service. We are not liable for any data loss, account suspensions on third-party platforms, or other damages arising from the use of LeetPush.
               </p>
             </section>
           </div>

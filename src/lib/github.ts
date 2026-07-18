@@ -86,7 +86,9 @@ export async function commitSolutionFolder(
   repoFullName: string,
   files: FileToCommit[],
   commitMessage: string,
-  defaultBranch = "main"
+  defaultBranch = "main",
+  authorName?: string,
+  authorEmail?: string
 ): Promise<CommitResult> {
   const octokit = await getInstallationOctokit(installationId);
   const [owner, repo] = repoFullName.split("/");
@@ -104,10 +106,11 @@ export async function commitSolutionFolder(
       owner, repo, commit_sha: baseSha,
     });
     baseTreeSha = commitData.tree.sha;
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const error = err as { status?: number };
     // If repo is completely empty, we need to create an initial commit
-    if (err?.status === 409 || err?.status === 404) {
-      return commitSolutionFolderToEmpty(octokit, owner, repo, files, commitMessage, defaultBranch);
+    if (error?.status === 409 || error?.status === 404) {
+      return commitSolutionFolderToEmpty(octokit, owner, repo, files, commitMessage, defaultBranch, authorName, authorEmail);
     }
     throw err;
   }
@@ -138,12 +141,25 @@ export async function commitSolutionFolder(
   });
 
   // 4. Create the commit
-  const { data: newCommit } = await octokit.git.createCommit({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const commitParams: any = {
     owner, repo,
     message: commitMessage,
     tree: newTree.sha,
     parents: [baseSha],
-  });
+  };
+
+  if (authorName && authorEmail) {
+    const author = {
+      name: authorName,
+      email: authorEmail,
+      date: new Date().toISOString()
+    };
+    commitParams.author = author;
+    commitParams.committer = author;
+  }
+
+  const { data: newCommit } = await octokit.git.createCommit(commitParams);
 
   // 5. Update the branch ref
   await octokit.git.updateRef({
@@ -165,7 +181,9 @@ async function commitSolutionFolderToEmpty(
   repo: string,
   files: FileToCommit[],
   commitMessage: string,
-  branch: string
+  branch: string,
+  authorName?: string,
+  authorEmail?: string
 ): Promise<CommitResult> {
   // Create blobs
   const treeItems = await Promise.all(
@@ -180,9 +198,23 @@ async function commitSolutionFolderToEmpty(
   );
 
   const { data: newTree } = await octokit.git.createTree({ owner, repo, tree: treeItems });
-  const { data: newCommit } = await octokit.git.createCommit({
+  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const commitParams: any = {
     owner, repo, message: commitMessage, tree: newTree.sha, parents: [],
-  });
+  };
+  
+  if (authorName && authorEmail) {
+    const author = {
+      name: authorName,
+      email: authorEmail,
+      date: new Date().toISOString()
+    };
+    commitParams.author = author;
+    commitParams.committer = author;
+  }
+  
+  const { data: newCommit } = await octokit.git.createCommit(commitParams);
 
   // Create or update branch ref
   try {

@@ -30,7 +30,7 @@ export function DisconnectButton() {
     <button
       onClick={handleDisconnect}
       disabled={loading}
-      className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-[var(--radius-md)] bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-full bg-[var(--color-accent)]/10 hover:bg-[var(--color-accent)]/20 text-[var(--color-accent)] border border-[var(--color-accent)]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
     >
       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
       Delete Data & Disconnect

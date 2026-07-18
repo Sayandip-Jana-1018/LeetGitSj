@@ -1,17 +1,20 @@
-import { Sidebar } from "@/components/dashboard/Sidebar";
+import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
+import { SyncPulseIndicator } from "@/components/dashboard/SyncPulseIndicator";
 import { ReactNode } from "react";
+import { auth } from "@/auth";
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default async function DashboardLayout({ children }: { children: ReactNode }) {
+  const session = await auth();
+  
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text-primary)]">
-      <Sidebar />
-      <div className="md:pl-64 flex flex-col flex-1 h-screen overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8">
-          <div className="max-w-5xl mx-auto">
-            {children}
-          </div>
-        </main>
-      </div>
+    <div className="min-h-screen text-[var(--color-text-primary)] relative">
+      <DashboardTabs user={session?.user} />
+      <main className="px-6 py-8 sm:px-10 sm:py-10">
+        <div className="max-w-6xl mx-auto">
+          {children}
+        </div>
+      </main>
+      <SyncPulseIndicator />
     </div>
   );
 }

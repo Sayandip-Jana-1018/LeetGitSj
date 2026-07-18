@@ -63,7 +63,7 @@ export default function PrivacyPolicy() {
                 4. Data Deletion
               </h2>
               <p>
-                You have full control over your data. You can instantly delete all your LeetCode credentials and sync history from our servers using the "Disconnect & Delete" button in your Dashboard Settings. Uninstalling the GitHub App from your repository will also revoke our write access instantly.
+                You have full control over your data. You can instantly delete all your LeetCode credentials and sync history from our servers using the &quot;Disconnect &amp; Delete&quot; button in your Dashboard Settings. Uninstalling the GitHub App from your repository will also revoke our write access instantly.
               </p>
             </section>
           </div>
