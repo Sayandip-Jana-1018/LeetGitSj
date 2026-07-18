@@ -50,30 +50,35 @@ export async function GET() {
     }),
   ]);
 
-  // Calculate streak (consecutive days with syncs)
   let streak = 0;
   if (totalSynced > 0) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const allSubmissions = await prisma.syncedSubmission.findMany({
+      where: { userId },
+      select: { syncedAt: true },
+      orderBy: { syncedAt: "desc" },
+    });
 
-    for (let i = 0; i < 365; i++) {
-      const dayStart = new Date(today);
-      dayStart.setDate(dayStart.getDate() - i);
-      const dayEnd = new Date(dayStart);
-      dayEnd.setDate(dayEnd.getDate() + 1);
+    const submissionDays = [
+      ...new Set(
+        allSubmissions.map((s) =>
+          new Date(s.syncedAt).toISOString().split("T")[0]
+        )
+      ),
+    ].sort((a, b) => b.localeCompare(a));
 
-      const count = await prisma.syncedSubmission.count({
-        where: {
-          userId,
-          syncedAt: { gte: dayStart, lt: dayEnd },
-        },
-      });
+    if (submissionDays.length > 0) {
+      const today = new Date().toISOString().split("T")[0];
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
 
-      if (count > 0) {
-        streak++;
-      } else if (i > 0) {
-        // Allow today to not have syncs yet
-        break;
+      if (submissionDays[0] === today || submissionDays[0] === yesterday) {
+        streak = 1;
+        for (let i = 1; i < submissionDays.length; i++) {
+          const prev = new Date(submissionDays[i - 1]);
+          const curr = new Date(submissionDays[i]);
+          const diff = (prev.getTime() - curr.getTime()) / 86400000;
+          if (diff === 1) streak++;
+          else break;
+        }
       }
     }
   }
