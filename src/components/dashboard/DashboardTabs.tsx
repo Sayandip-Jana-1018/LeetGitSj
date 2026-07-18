@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Activity, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Activity, Settings, LogOut, Code2 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ThemeColorToggle } from "@/components/theme-color-toggle";
@@ -27,12 +27,18 @@ export function DashboardTabs({ user }: { user?: { image?: string | null; name?:
           {/* Logo & Logout (Left) */}
           <div className="flex items-center gap-3 shrink-0">
             <Link href="/dashboard" className="flex items-center gap-2.5">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={user?.image || "/profile_photo.jpg"}
-                alt="Profile"
-                className="w-8 h-8 rounded-full object-cover shadow-md ring-2 ring-[var(--color-border-subtle)]"
-              />
+              {user?.image ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={user.image}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full object-cover shadow-md ring-2 ring-[var(--color-border-subtle)]"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center text-[var(--color-accent)] ring-2 ring-[var(--color-border-subtle)] shadow-md">
+                  <Code2 className="w-4.5 h-4.5" />
+                </div>
+              )}
               <span className="hidden xs:inline-block font-bold tracking-tight text-lg text-[var(--color-text-primary)]">
                 LeetGit<span className="text-[var(--color-accent)]">Sj</span>
               </span>

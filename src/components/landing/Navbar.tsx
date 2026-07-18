@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { motion } from "framer-motion";
 import { Github } from "@/components/icons/github";
+import { Code2 } from "lucide-react";
 
 export function Navbar() {
   return (
@@ -18,7 +19,9 @@ export function Navbar() {
         <div className="bg-white/10 dark:bg-black/20 backdrop-blur-lg border border-white/20 dark:border-white/10 rounded-full flex items-center justify-between px-6 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.12)]">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <img src="/profile_photo.jpg" alt="Logo" className="w-8 h-8 rounded-full object-cover shadow-sm group-hover:shadow-[var(--shadow-glow)] transition-shadow duration-300" />
+            <div className="w-8 h-8 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center text-[var(--color-accent)] ring-2 ring-[var(--color-accent)]/30 group-hover:shadow-[var(--shadow-glow)] transition-all duration-300">
+              <Code2 className="w-5 h-5" />
+            </div>
             <span className="font-semibold text-[var(--color-text-primary)] text-lg tracking-tight">
               LeetGit<span className="text-[var(--color-accent)]">Sj</span>
             </span>
