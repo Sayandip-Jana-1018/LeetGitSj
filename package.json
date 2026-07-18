@@ -8,7 +8,7 @@
     "dev:worker": "tsx src/worker.ts",
     "build": "next build",
     "start": "next start",
-    "worker": "tsx --env-file=.env.local src/worker.ts",
+    "worker": "tsx src/worker.ts",
     "lint": "eslint"
   },
   "dependencies": {
