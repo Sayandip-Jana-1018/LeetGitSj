@@ -1,3 +1,11 @@
+<img width="3392" height="2400" alt="Screenshot_2026-07-20-16-38-39-18_40deb401b9ffe8e1df2f1cc5ba480b12" src="https://github.com/user-attachments/assets/ce2e127b-4147-44e3-a651-65d50a9ca207" />
+<img width="3392" height="2400" alt="Screenshot_2026-07-20-16-37-57-17_40deb401b9ffe8e1df2f1cc5ba480b12" src="https://github.com/user-attachments/assets/fdf78360-0624-4724-a5b3-27b96fa19567" />
+<img width="3392" height="2400" alt="Screenshot_2026-07-20-16-37-12-90_40deb401b9ffe8e1df2f1cc5ba480b12" src="https://github.com/user-attachments/assets/0b6e6600-2738-4a45-8cbf-0d9f919fe18b" />
+<img width="3392" height="2400" alt="Screenshot_2026-07-20-16-37-01-11_40deb401b9ffe8e1df2f1cc5ba480b12" src="https://github.com/user-attachments/assets/f2668973-0db8-452b-89ff-b8f49e9cc34f" />
+<img width="3392" height="2400" alt="Screenshot_2026-07-20-16-36-48-13_40deb401b9ffe8e1df2f1cc5ba480b12" src="https://github.com/user-attachments/assets/62a013e1-4f48-44b5-b00a-5335997a43ef" />
+
+
+
 # LeetGitSj 🚀
 
 LeetGitSj is an automated platform that syncs your accepted LeetCode submissions directly to a GitHub repository, turning your coding practice into a green contribution graph. No browser extensions required—everything runs automatically in the background!
