@@ -34,7 +34,7 @@ export interface SyncResult {
  * Format: {questionId}-{slug}
  * e.g. "1-two-sum" or "42-trapping-rain-water"
  */
-function buildFolderPath(questionId: string, titleSlug: string): string {
+export function buildFolderPath(questionId: string, titleSlug: string): string {
   return `${questionId}-${slugify(titleSlug)}`;
 }
 
