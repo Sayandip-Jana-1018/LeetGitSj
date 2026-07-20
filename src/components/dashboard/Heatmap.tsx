@@ -40,16 +40,14 @@ export function Heatmap({ data }: HeatmapProps) {
           }
         }
         
-        // Find if we have data for this day
-        const dayData = data.find(item => {
-          const itemDate = new Date(item.date);
-          itemDate.setHours(0, 0, 0, 0);
-          return isSameDay(itemDate, dateObj);
-        });
+        // Find if we have data for this day and sum the counts
+        const totalCountForDay = data
+          .filter(item => isSameDay(new Date(item.date), dateObj))
+          .reduce((sum, item) => sum + item.count, 0);
         
         week.push({
           date: dateObj,
-          count: dayData ? dayData.count : 0,
+          count: totalCountForDay,
           inFuture: dateObj > today
         });
         
