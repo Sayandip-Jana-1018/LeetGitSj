@@ -3,10 +3,8 @@ config({ path: ".env.local" });
 config({ path: ".env" }); // fallback
 
 import { startWorker, getSyncQueue } from "./lib/queue";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./lib/prisma";
 import http from "http";
-
-const prisma = new PrismaClient();
 
 console.log("🚀 Starting LeetPush Background Worker...");
 
@@ -37,8 +35,15 @@ async function scheduleAllUsers() {
         }
       );
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error scheduling users:", error);
+    // Neon serverless Postgres drops idle connections. If Prisma's pool is corrupted
+    // and throws a Closed error, the safest recovery in a Render worker is to gracefully crash
+    // and let Render automatically restart the service with a fresh connection pool immediately.
+    if (error?.message?.includes("Closed") || error?.message?.includes("connection")) {
+      console.log("♻️ Restarting worker to recover Database connection pool...");
+      process.exit(1);
+    }
   }
 }
 

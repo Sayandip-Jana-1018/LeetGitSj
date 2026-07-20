@@ -162,8 +162,12 @@ export function startWorker() {
     console.log(`[Worker] Job ${job.id} completed. Result: ${result?.status}`);
   });
 
-  worker.on("failed", (job, err) => {
+  worker.on("failed", (job, err: any) => {
     console.error(`[Worker] Job ${job?.id} failed:`, err);
+    if (err?.message?.includes("Closed") || err?.message?.includes("connection")) {
+      console.log("♻️ Restarting worker to recover Database connection pool...");
+      process.exit(1);
+    }
   });
 
   // Start the Auto-Connect worker
