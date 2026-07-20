@@ -50,18 +50,18 @@ Code submitted:
 ${input.code}
 \`\`\`
 
-Write ONLY the following two sections in plain markdown. Be concise and direct. Do NOT reproduce or closely paraphrase the exact LeetCode problem statement — just give a brief conceptual summary in your own words (2-3 sentences max).
+Write the following sections in plain markdown. Make the explanation detailed and insightful, breaking down exactly how the provided code works. Do NOT reproduce the exact LeetCode problem statement — just give a conceptual summary.
 
 ## Problem Summary
-[A short paraphrase of what the problem asks, in your own words. End with: "See the [full problem on LeetCode](https://leetcode.com/problems/${input.titleSlug}/)."]
+[A brief paraphrase of what the problem asks, in your own words. End with: "See the [full problem on LeetCode](https://leetcode.com/problems/${input.titleSlug}/)."]
 
-## Approach
-[A plain-English explanation of the algorithm/technique used, reading from the code. Name the pattern (e.g. "sliding window", "BFS", "two pointers + hash map"). 2-4 sentences.]
+## Approach & Implementation
+[A detailed explanation of the algorithm/technique used in the provided code. Name the core pattern (e.g., "Sliding Window", "BFS"). Walk through the main steps of the code, explaining the logic behind the data structures used, loops, and key conditional statements. Use bullet points for step-by-step clarity.]
 
 ## Complexity (AI Estimate)
 > ⚠️ *These are AI-inferred estimates — verify independently.*
-- **Time:** O(...)
-- **Space:** O(...)`;
+- **Time:** O(...) - [Brief explanation of why]
+- **Space:** O(...) - [Brief explanation of why]`;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12_000);

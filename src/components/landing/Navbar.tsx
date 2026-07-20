@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeColorToggle } from "@/components/theme-color-toggle";
 import { motion } from "framer-motion";
 import { Github } from "@/components/icons/github";
 import { Code2 } from "lucide-react";
@@ -50,6 +51,7 @@ export function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
+            <ThemeColorToggle />
             <ThemeToggle />
             <Link
               href="/login"
