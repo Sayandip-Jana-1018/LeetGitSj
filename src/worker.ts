@@ -13,8 +13,8 @@ console.log("🚀 Starting LeetPush Background Worker...");
 const worker = startWorker();
 
 // --- CRON SCHEDULER ---
-// Run every 4 hours to fetch new submissions silently
-const SYNC_INTERVAL_MS = 4 * 60 * 60 * 1000; 
+// Run every 1 hour to fetch new submissions silently
+const SYNC_INTERVAL_MS = 1 * 60 * 60 * 1000; 
 
 async function scheduleAllUsers() {
   console.log("⏰ Running scheduled cron sync for all active users...");
