@@ -13,11 +13,9 @@ export function Heatmap({ data }: HeatmapProps) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // We want 52 weeks ending this week
-    const startDate = subDays(today, 52 * 7 - 1);
-    
-    // Adjust startDate to be the Sunday of that week
-    const firstSunday = startOfWeek(startDate, { weekStartsOn: 0 });
+    // We want 53 columns to ensure today is always included (current week + 52 past weeks)
+    const currentSunday = startOfWeek(today, { weekStartsOn: 0 });
+    const firstSunday = subDays(currentSunday, 52 * 7);
     
     const weeksList: Array<Array<{ date: Date; count: number; inFuture: boolean }>> = [];
     const months: Array<{ label: string; offset: number }> = [];
@@ -25,8 +23,8 @@ export function Heatmap({ data }: HeatmapProps) {
     let currentDate = firstSunday;
     let currentMonth = -1;
     
-    // Create 52 columns (weeks)
-    for (let w = 0; w < 52; w++) {
+    // Create 53 columns (weeks)
+    for (let w = 0; w < 53; w++) {
       const week: Array<{ date: Date; count: number; inFuture: boolean }> = [];
       
       for (let d = 0; d < 7; d++) {
