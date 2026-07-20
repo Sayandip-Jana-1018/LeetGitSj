@@ -30,7 +30,7 @@ export default async function DashboardOverview() {
 
   const userId = session.user.id;
 
-  const [leetcodeCredential, githubInstallation, , totalSynced, recentSubmissions] =
+  const [leetcodeCredential, githubInstallation, , totalSynced, recentSubmissions, user] =
     await Promise.all([
       prisma.leetCodeCredential.findUnique({ where: { userId } }),
       prisma.gitHubInstallation.findUnique({ where: { userId } }),
@@ -52,7 +52,18 @@ export default async function DashboardOverview() {
           memory: true,
         },
       }),
+      prisma.user.findUnique({ where: { id: userId }, select: { extensionSecret: true } }),
     ]);
+
+  let extensionSecret = user?.extensionSecret;
+  if (!extensionSecret) {
+    const crypto = await import("crypto");
+    extensionSecret = crypto.randomBytes(32).toString("hex");
+    await prisma.user.update({
+      where: { id: userId },
+      data: { extensionSecret },
+    });
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let leetcodeProfile: any = null;
@@ -160,6 +171,27 @@ export default async function DashboardOverview() {
           </div>
         </div>
       )}
+
+      {/* Chrome Extension Setup */}
+      <div className="rounded-2xl bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/25 p-6 flex flex-col items-center justify-center text-center gap-3 backdrop-blur-sm">
+        <div className="w-10 h-10 rounded-xl bg-[var(--color-accent)]/15 flex items-center justify-center shrink-0">
+          <Zap className="w-5 h-5 text-[var(--color-accent)]" />
+        </div>
+        <div className="flex-1 w-full">
+          <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
+            Setup Chrome Extension (Required)
+          </h3>
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+            LeetCode blocked backend syncing. To automatically sync code, please install the LeetGit Chrome Extension.
+          </p>
+          <div className="mt-4 flex flex-col items-center justify-center gap-2">
+            <span className="text-xs text-[var(--color-text-muted)]">Your Extension Secret Key (Do not share):</span>
+            <code className="px-3 py-1.5 bg-[var(--color-surface-hover)] rounded-md text-xs border border-[var(--color-border-subtle)] font-mono text-[var(--color-text-primary)] select-all">
+              {extensionSecret}
+            </code>
+          </div>
+        </div>
+      </div>
 
       {/* Stats Grid — 3D Tilt Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">

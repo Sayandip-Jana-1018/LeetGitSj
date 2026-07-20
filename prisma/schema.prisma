@@ -19,6 +19,7 @@ model User {
   image              String?
   githubId           String?   @unique
   notifyEmail        String?
+  extensionSecret    String?   @unique
   isPublicBadgeEnabled Boolean @default(false)
   notificationSentAt DateTime?
   createdAt          DateTime  @default(now())
