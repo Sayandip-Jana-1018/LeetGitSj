@@ -15,7 +15,17 @@ export function SyncTriggerButton({ disabled }: { disabled?: boolean }) {
 
   const handleSync = async () => {
     setIsSyncing(true);
+    let originalLastSyncTime: string | null = null;
+    
     try {
+      // 1. Get the current lastSync time so we know when it changes
+      const statusRes = await fetch("/api/sync/status");
+      if (statusRes.ok) {
+        const data = await statusRes.json();
+        originalLastSyncTime = data.lastSync?.runAt || null;
+      }
+
+      // 2. Trigger the sync job
       const res = await fetch("/api/sync/trigger", { method: "POST" });
       const data = await res.json();
       
@@ -23,14 +33,45 @@ export function SyncTriggerButton({ disabled }: { disabled?: boolean }) {
         throw new Error(data.error || data.errorMessage || "Sync failed");
       }
       
-      // Refresh the page data (though sync is async, it might have updated stats from before)
-      router.refresh();
+      // 3. Poll until the sync worker finishes (up to 2 minutes)
+      let attempts = 0;
+      const maxAttempts = 40; // 40 * 3s = 120s
       
+      while (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 3000)); // wait 3s
+        attempts++;
+        
+        const checkRes = await fetch("/api/sync/status");
+        if (checkRes.ok) {
+          const checkData = await checkRes.json();
+          const newLastSyncTime = checkData.lastSync?.runAt || null;
+          
+          if (newLastSyncTime && newLastSyncTime !== originalLastSyncTime) {
+            // The background worker finished!
+            if (checkData.lastSync.status === "FAILURE") {
+              throw new Error(checkData.lastSync.errorMessage || "Sync completed with errors");
+            }
+            
+            router.refresh();
+            setModalState({
+              isOpen: true,
+              type: "success",
+              message: `Sync completed! Found ${checkData.lastSync.newSubmissionsCount} new submissions.`
+            });
+            setIsSyncing(false);
+            return;
+          }
+        }
+      }
+      
+      // If we timeout polling, still refresh but tell them it's taking a while
+      router.refresh();
       setModalState({
         isOpen: true,
         type: "success",
-        message: data.message || "Sync job enqueued successfully. It may take a minute to complete."
+        message: "Sync job is taking longer than expected. It will finish in the background."
       });
+      
     } catch (err) {
       setModalState({
         isOpen: true,
