@@ -30,7 +30,7 @@ export default async function DashboardOverview() {
 
   const userId = session.user.id;
 
-  const [leetcodeCredential, githubInstallation, , totalSynced, recentSubmissions, user] =
+  const [leetcodeCredential, githubInstallation, , totalSynced, recentSubmissions] =
     await Promise.all([
       prisma.leetCodeCredential.findUnique({ where: { userId } }),
       prisma.gitHubInstallation.findUnique({ where: { userId } }),
