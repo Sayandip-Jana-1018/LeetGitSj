@@ -132,7 +132,8 @@ export function startWorker() {
       const locked = await getConnection().set(lockKey, "1", "EX", 300, "NX");
       
       if (!locked) {
-        throw new Error("Sync already in progress for this user (lock active)");
+        console.log(`[Worker] Sync already in progress for ${job.data.userId}. Skipping duplicate job.`);
+        return { status: "skipped_locked" };
       }
 
       // Check if this user's credential has recently expired
