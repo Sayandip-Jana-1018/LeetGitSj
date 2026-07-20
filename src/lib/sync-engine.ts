@@ -47,11 +47,11 @@ export async function syncUserSubmissions(userId: string): Promise<SyncResult> {
     prisma.user.findUnique({ where: { id: userId } })
   ]);
 
-  if (!credential || credential.status !== "ACTIVE") {
+  if (!credential || credential.status !== "ACTIVE" || !credential.leetcodeUsername) {
     return logAndReturn(userId, {
       status: "failure",
       newSubmissionsCount: 0,
-      errorMessage: "No active LeetCode credential found",
+      errorMessage: "No active LeetCode credential or username found",
       durationMs: Date.now() - startTime,
     });
   }
