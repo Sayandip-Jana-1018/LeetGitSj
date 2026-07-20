@@ -68,28 +68,15 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground relative">
-        {/* Global Smoke Particle Background */}
-        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-          {/* Large soft base layers — very blurred, subtle */}
-          <div className="smoke-base" style={{ background: "radial-gradient(ellipse, hsla(var(--hue, 172),85%,50%,0.35) 0%, transparent 70%)", width: "80vw", height: "80vw", top: "-20%", left: "-15%" }} />
-          <div className="smoke-base" style={{ background: "radial-gradient(ellipse, hsla(calc(var(--hue, 172) + 88),70%,60%,0.30) 0%, transparent 70%)", width: "90vw", height: "90vw", bottom: "-30%", right: "-20%", animationDelay: "3s", animationDuration: "28s" }} />
+        {/* Global Background — Lightweight (4 elements instead of 15 for mobile perf) */}
+        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden will-change-transform">
+          {/* Two large soft base layers */}
+          <div className="smoke-base" style={{ background: "radial-gradient(ellipse, hsla(var(--hue, 172),85%,50%,0.3) 0%, transparent 70%)", width: "70vw", height: "70vw", top: "-15%", left: "-10%", willChange: "transform" }} />
+          <div className="smoke-base" style={{ background: "radial-gradient(ellipse, hsla(calc(var(--hue, 172) + 88),70%,60%,0.25) 0%, transparent 70%)", width: "75vw", height: "75vw", bottom: "-25%", right: "-15%", animationDelay: "3s", animationDuration: "28s", willChange: "transform" }} />
 
-          {/* Medium drifting smoke wisps */}
-          <div className="smoke-wisp" style={{ background: "radial-gradient(circle, hsla(var(--hue, 172),85%,55%,0.50) 0%, transparent 65%)", width: "35vw", height: "35vw", top: "5%", left: "10%", animationDuration: "14s" }} />
-          <div className="smoke-wisp" style={{ background: "radial-gradient(circle, hsla(calc(var(--hue, 172) + 28),80%,60%,0.45) 0%, transparent 65%)", width: "30vw", height: "30vw", top: "15%", right: "8%", animationDelay: "1.5s", animationDuration: "18s" }} />
-          <div className="smoke-wisp" style={{ background: "radial-gradient(circle, hsla(calc(var(--hue, 172) + 88),70%,65%,0.42) 0%, transparent 65%)", width: "38vw", height: "38vw", top: "50%", left: "5%", animationDelay: "3s", animationDuration: "20s" }} />
-          <div className="smoke-wisp" style={{ background: "radial-gradient(circle, hsla(var(--hue, 172),85%,50%,0.40) 0%, transparent 65%)", width: "32vw", height: "32vw", bottom: "5%", right: "5%", animationDelay: "2s", animationDuration: "16s" }} />
-          <div className="smoke-wisp" style={{ background: "radial-gradient(circle, hsla(calc(var(--hue, 172) + 28),80%,55%,0.42) 0%, transparent 65%)", width: "28vw", height: "28vw", top: "35%", left: "45%", animationDelay: "4s", animationDuration: "15s" }} />
-          <div className="smoke-wisp" style={{ background: "radial-gradient(circle, hsla(calc(var(--hue, 172) + 108),70%,60%,0.40) 0%, transparent 65%)", width: "30vw", height: "30vw", top: "70%", left: "30%", animationDelay: "0.8s", animationDuration: "19s" }} />
-
-          {/* Small fast-moving smoke particles */}
-          <div className="smoke-particle" style={{ background: "radial-gradient(circle, hsla(var(--hue, 172),85%,60%,0.60) 0%, transparent 70%)", width: "16vw", height: "16vw", top: "20%", left: "25%", animationDuration: "10s" }} />
-          <div className="smoke-particle" style={{ background: "radial-gradient(circle, hsla(calc(var(--hue, 172) + 88),70%,70%,0.55) 0%, transparent 70%)", width: "13vw", height: "13vw", top: "60%", right: "20%", animationDelay: "1s", animationDuration: "12s" }} />
-          <div className="smoke-particle" style={{ background: "radial-gradient(circle, hsla(calc(var(--hue, 172) + 28),80%,65%,0.58) 0%, transparent 70%)", width: "18vw", height: "18vw", top: "40%", left: "68%", animationDelay: "2.5s", animationDuration: "9s" }} />
-          <div className="smoke-particle" style={{ background: "radial-gradient(circle, hsla(var(--hue, 172),85%,55%,0.52) 0%, transparent 70%)", width: "14vw", height: "14vw", top: "80%", left: "15%", animationDelay: "0.5s", animationDuration: "13s" }} />
-          <div className="smoke-particle" style={{ background: "radial-gradient(circle, hsla(calc(var(--hue, 172) + 108),65%,65%,0.55) 0%, transparent 70%)", width: "16vw", height: "16vw", top: "10%", right: "30%", animationDelay: "3.5s", animationDuration: "11s" }} />
-          <div className="smoke-particle" style={{ background: "radial-gradient(circle, hsla(calc(var(--hue, 172) + 28),80%,60%,0.50) 0%, transparent 70%)", width: "12vw", height: "12vw", top: "55%", left: "52%", animationDelay: "1.8s", animationDuration: "14s" }} />
-          <div className="smoke-particle" style={{ background: "radial-gradient(circle, hsla(var(--hue, 172),85%,50%,0.58) 0%, transparent 70%)", width: "15vw", height: "15vw", bottom: "20%", right: "40%", animationDelay: "2.2s", animationDuration: "11s" }} />
+          {/* Two medium drifting wisps */}
+          <div className="smoke-wisp" style={{ background: "radial-gradient(circle, hsla(var(--hue, 172),85%,55%,0.4) 0%, transparent 65%)", width: "35vw", height: "35vw", top: "10%", left: "15%", animationDuration: "18s", willChange: "transform" }} />
+          <div className="smoke-wisp" style={{ background: "radial-gradient(circle, hsla(calc(var(--hue, 172) + 28),80%,60%,0.35) 0%, transparent 65%)", width: "30vw", height: "30vw", bottom: "10%", right: "10%", animationDelay: "2s", animationDuration: "20s", willChange: "transform" }} />
         </div>
         
         <div className="relative z-10 flex-1 flex flex-col">

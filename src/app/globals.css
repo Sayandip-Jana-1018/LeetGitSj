@@ -177,6 +177,13 @@ body {
   border-radius: var(--radius-lg);
 }
 
+@media (max-width: 768px) {
+  .glass-card {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
 /* --- Pulse animation for sync status --- */
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
@@ -213,34 +220,37 @@ body {
   100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
 }
 
-/* Large subtle base layer — very heavy blur, slow drift */
+/* Large subtle base layer — reduced blur for mobile perf */
 .smoke-base {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(130px);
-  opacity: 0.85;
+  filter: blur(80px);
+  opacity: 0.7;
   animation: smoke-base-drift 22s ease-in-out infinite alternate;
+  will-change: transform;
 }
 
-/* Medium wisps — moderate blur, medium speed */
+/* Medium wisps — reduced blur */
 .smoke-wisp {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(60px);
-  opacity: 0.85;
+  filter: blur(50px);
+  opacity: 0.7;
   animation: smoke-wisp-drift 16s ease-in-out infinite;
+  will-change: transform;
 }
 
-/* Small particles — light blur, fastest movement */
+/* Small particles — reduced blur */
 .smoke-particle {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(30px);
-  opacity: 0.90;
+  filter: blur(25px);
+  opacity: 0.75;
   animation: smoke-particle-float 12s ease-in-out infinite;
+  will-change: transform;
 }
 
 /* Keep legacy aurora-blob in case any component still uses it */
@@ -248,9 +258,32 @@ body {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(100px);
-  opacity: 0.7;
+  filter: blur(60px);
+  opacity: 0.6;
   animation: smoke-wisp-drift 16s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Disable background animations on mobile/tablet for smooth UX */
+@media (max-width: 768px) {
+  .smoke-base,
+  .smoke-wisp,
+  .smoke-particle,
+  .aurora-blob {
+    animation: none !important;
+    filter: blur(40px) !important;
+    opacity: 0.5 !important;
+  }
+}
+
+/* Also disable for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .smoke-base,
+  .smoke-wisp,
+  .smoke-particle,
+  .aurora-blob {
+    animation: none !important;
+  }
 }
 
 /* --- Noise texture overlay --- */
