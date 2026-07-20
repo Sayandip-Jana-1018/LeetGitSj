@@ -243,8 +243,8 @@ export async function fetchRecentSubmissions(
   };
 
   return {
-    submissions: data.submissionList.submissions,
-    hasMore: data.submissionList.hasNext,
+    submissions: data.submissionList?.submissions || [],
+    hasMore: data.submissionList?.hasNext || false,
   };
 }
 
