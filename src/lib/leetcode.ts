@@ -308,7 +308,7 @@ export async function fetchSubmissionDetail(
   };
 
   if (!data || !data.submissionDetails) {
-    throw new Error(`LeetCode API returned null for submissionDetails. They have restricted access to this query.`);
+    throw new LeetCodeAuthError(`LeetCode API returned null for submissionDetails. Your session has likely expired.`);
   }
 
   return {
