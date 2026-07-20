@@ -304,19 +304,25 @@ export async function fetchSubmissionDetail(
         titleSlug: string;
         title: string;
       };
-    };
+    } | null;
   };
 
-  const d = data.submissionDetails;
+  if (!data || !data.submissionDetails) {
+    throw new Error(`LeetCode API returned null for submissionDetails. They have restricted access to this query.`);
+  }
 
   return {
-    code: d.code,
-    lang: d.lang.name,
-    runtime: d.runtimeDisplay || d.runtime,
-    memory: d.memoryDisplay || d.memory,
-    statusDisplay: d.statusDisplay,
-    timestamp: d.timestamp,
-    question: d.question,
+    code: data.submissionDetails.code,
+    lang: data.submissionDetails.lang.name,
+    runtime: data.submissionDetails.runtimeDisplay || data.submissionDetails.runtime,
+    memory: data.submissionDetails.memoryDisplay || data.submissionDetails.memory,
+    statusDisplay: data.submissionDetails.statusDisplay,
+    timestamp: data.submissionDetails.timestamp,
+    question: {
+      questionId: data.submissionDetails.question.questionId,
+      titleSlug: data.submissionDetails.question.titleSlug,
+      title: data.submissionDetails.question.title,
+    },
   };
 }
 

@@ -87,6 +87,15 @@ export async function syncUserSubmissions(userId: string): Promise<SyncResult> {
 
   try {
     outer: while (newCount < MAX_SUBMISSIONS_PER_RUN) {
+      if (!credential.leetcodeUsername) {
+        return logAndReturn(userId, {
+          status: "failure",
+          newSubmissionsCount: 0,
+          durationMs: Date.now() - startTime,
+          errorMessage: "LeetCode username is not set. Please reconnect.",
+        });
+      }
+
       const { submissions, hasMore } = await fetchRecentSubmissions(
         credential.leetcodeUsername, session, csrfToken, PAGE_SIZE
       );
