@@ -32,13 +32,12 @@ export interface ReadmeSections {
 // Provider-agnostic interface — swap this adapter to change AI backends
 // ============================================================
 
-async function generateWithGemini(input: ReadmeInput): Promise<string> {
+async function generateWithGemini(input: ReadmeInput, modelName: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  // gemini-2.5-flash: fast, capable, free tier friendly
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = genAI.getGenerativeModel({ model: modelName });
 
   const prompt = `You are helping document a LeetCode solution for a developer's GitHub portfolio.
 
@@ -120,10 +119,22 @@ export async function generateReadme(input: ReadmeInput): Promise<ReadmeSections
     ? `https://leetcode.com/submissions/detail/${input.submissionId}/`
     : null;
 
-  // Try AI generation
-  try {
-    const aiSections = await generateWithGemini(input);
+  // Try AI generation with multi-tiered fallbacks
+  const aiModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+  let aiSections: string | null = null;
+  let lastError: unknown = null;
 
+  for (const model of aiModels) {
+    try {
+      aiSections = await generateWithGemini(input, model);
+      break; // Success! Break out of fallback loop
+    } catch (err) {
+      console.warn(`[readme-gen] Model ${model} failed, trying next fallback...`, err instanceof Error ? err.message : err);
+      lastError = err;
+    }
+  }
+
+  if (aiSections) {
     const fullReadme = `# ${input.questionId}. ${input.title}
 
 ${difficultyEmoji} **${input.difficulty}** · ${input.tags.map((t) => `\`${t}\``).join(" ")}
@@ -144,9 +155,9 @@ ${aiSections}
 `;
 
     return { content: fullReadme, isAiGenerated: true };
-  } catch (err) {
+  } else {
     // Log but never let AI failure block the sync
-    console.error("[readme-gen] AI generation failed, using fallback:", err instanceof Error ? err.message : err);
+    console.error("[readme-gen] All AI models failed, using non-AI fallback. Last error:", lastError instanceof Error ? lastError.message : lastError);
     return { content: buildFallbackReadme(input), isAiGenerated: false };
   }
 }
