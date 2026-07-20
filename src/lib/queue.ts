@@ -1,9 +1,5 @@
 import { Queue, Worker, QueueEvents, Job } from "bullmq";
 import Redis from "ioredis";
-import { syncUserSubmissions } from "./sync-engine";
-import { autoLoginLeetCode } from "./leetcode-auto-login";
-import { encrypt } from "./encryption";
-import { prisma } from "./prisma";
 
 // Helper to get Redis connection for BullMQ
 function getRedisConnection() {
@@ -127,6 +123,9 @@ export function startWorker() {
   worker = new Worker(
     SYNC_QUEUE_NAME,
     async (job: Job<{ userId: string }>) => {
+      // Dynamic import — only loaded in the worker process, never on Vercel
+      const { syncUserSubmissions } = await import("./sync-engine");
+
       console.log(`[Worker] Processing sync job for user ${job.data.userId}`);
       
       const lockKey = `sync:lock:${job.data.userId}`;
@@ -171,6 +170,11 @@ export function startWorker() {
   const acWorker = new Worker(
     AUTO_CONNECT_QUEUE_NAME,
     async (job: Job<{ userId: string; u: string; p: string }>) => {
+      // Dynamic imports — only loaded in the worker process
+      const { autoLoginLeetCode } = await import("./leetcode-auto-login");
+      const { encrypt } = await import("./encryption");
+      const { prisma } = await import("./prisma");
+
       console.log(`[Worker] Processing auto-connect for user ${job.data.userId}`);
       
       const { session, csrfToken, username } = await autoLoginLeetCode(job.data.u, job.data.p);

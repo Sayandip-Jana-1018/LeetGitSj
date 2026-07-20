@@ -2,8 +2,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { encrypt } from "@/lib/encryption";
 import { verifyCredentials } from "@/lib/leetcode";
-import { clearExpiredFlag, syncQueue } from "@/lib/queue";
+import { enqueueSyncJob } from "@/lib/queue-client";
 import { NextRequest, NextResponse } from "next/server";
+import Redis from "ioredis";
 
 /**
  * POST /api/leetcode/connect
@@ -11,6 +12,19 @@ import { NextRequest, NextResponse } from "next/server";
  *
  * Body: { session: string, csrfToken: string }
  */
+
+let _redis: Redis | null = null;
+function getRedis(): Redis {
+  if (!_redis) {
+    _redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
+      maxRetriesPerRequest: 3,
+      enableReadyCheck: false,
+      lazyConnect: true,
+    });
+  }
+  return _redis;
+}
+
 export async function POST(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -66,14 +80,11 @@ export async function POST(request: NextRequest) {
     });
 
     // Clear any expired backoff flag in Redis
-    await clearExpiredFlag(session.user.id);
+    const redis = getRedis();
+    await redis.del(`expired:${session.user.id}`);
 
     // Enqueue an immediate sync to get them started right away
-    await syncQueue.add(
-      `sync:${session.user.id}`,
-      { userId: session.user.id },
-      { jobId: `manual-sync-${session.user.id}-${Date.now()}` }
-    );
+    await enqueueSyncJob(session.user.id);
 
     return NextResponse.json({
       success: true,

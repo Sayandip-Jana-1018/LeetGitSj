@@ -2,8 +2,7 @@
  * POST /api/leetcode/auto-connect
  *
  * Enqueues a Playwright-based auto-login job in the background worker.
- * Credentials are passed through the queue payload (u, p) and never logged.
- * Responds immediately with the job ID — poll /api/sync/status for results.
+ * Uses lightweight Redis client (no BullMQ) so it works on Vercel serverless.
  *
  * Security notes:
  * - Requires auth (session check)
@@ -13,24 +12,8 @@
  */
 
 import { auth } from "@/auth";
-import { autoConnectQueue } from "@/lib/queue";
+import { enqueueAutoConnectJob, checkAutoConnectRateLimit } from "@/lib/queue-client";
 import { NextRequest, NextResponse } from "next/server";
-import Redis from "ioredis";
-
-const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
-  maxRetriesPerRequest: 1,
-  enableReadyCheck: false,
-});
-
-const MAX_ATTEMPTS = 3;
-const WINDOW_SECONDS = 600; // 10 minutes
-
-async function checkAutoConnectRateLimit(userId: string): Promise<{ allowed: boolean; remaining: number }> {
-  const key = `auto-connect:rate:${userId}`;
-  const count = await redis.incr(key);
-  if (count === 1) await redis.expire(key, WINDOW_SECONDS);
-  return { allowed: count <= MAX_ATTEMPTS, remaining: Math.max(0, MAX_ATTEMPTS - count) };
-}
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -62,23 +45,15 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const job = await autoConnectQueue.add(
-      `auto-connect:${session.user.id}`,
-      {
-        userId: session.user.id,
-        u: username.trim(),
-        p: password, // never trimmed — passwords can have leading/trailing spaces
-      },
-      {
-        jobId: `auto-connect-${session.user.id}-${Date.now()}`,
-        removeOnComplete: { age: 3600 },
-        removeOnFail: { age: 3600 },
-      }
+    const jobId = await enqueueAutoConnectJob(
+      session.user.id,
+      username.trim(),
+      password  // never trimmed — passwords can have leading/trailing spaces
     );
 
     return NextResponse.json({
       status: "queued",
-      jobId: job.id,
+      jobId,
       attemptsRemaining: remaining,
       message: "Auto-connect job enqueued. This takes 10-30 seconds.",
     });

@@ -1,11 +1,11 @@
 import { auth } from "@/auth";
-import { syncQueue, checkRateLimit } from "@/lib/queue";
+import { enqueueSyncJob, checkSyncRateLimit } from "@/lib/queue-client";
 import { NextResponse } from "next/server";
 
 /**
  * POST /api/sync/trigger
  * Manual "Sync now" button handler.
- * Enqueues a job in BullMQ and returns immediately.
+ * Enqueues a job via lightweight Redis client (no BullMQ import).
  * Redis-backed rate limited to 1 per 60s per user.
  */
 export async function POST() {
@@ -18,7 +18,7 @@ export async function POST() {
 
   try {
     // 1. Enforce rate limit
-    const allowed = await checkRateLimit(userId);
+    const allowed = await checkSyncRateLimit(userId);
     if (!allowed) {
       return NextResponse.json(
         { error: "Rate limit exceeded. Please wait 60 seconds." },
@@ -27,14 +27,11 @@ export async function POST() {
     }
 
     // 2. Enqueue the job
-    await syncQueue.add(
-      `sync:${userId}`,
-      { userId },
-      { jobId: `manual-sync-${userId}-${Date.now()}` }
-    );
+    const jobId = await enqueueSyncJob(userId);
 
     return NextResponse.json({
       status: "queued",
+      jobId,
       message: "Sync job enqueued successfully",
     });
   } catch (err) {
