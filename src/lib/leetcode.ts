@@ -206,45 +206,37 @@ export interface LeetCodeSubmission {
  * Returns newest-first, paginated.
  */
 export async function fetchRecentSubmissions(
+  username: string,
   session: string,
   csrfToken: string,
-  limit: number = 20,
-  offset: number = 0
+  limit: number = 20
 ): Promise<{ submissions: LeetCodeSubmission[]; hasMore: boolean }> {
   const query = `
-    query submissionList($offset: Int!, $limit: Int!) {
-      submissionList(offset: $offset, limit: $limit) {
-        lastKey
-        hasNext
-        submissions {
-          id
-          title
-          titleSlug
-          timestamp
-          statusDisplay
-          lang
-          runtime
-          memory
-        }
+    query recentSubmissions($username: String!, $limit: Int!) {
+      recentSubmissionList(username: $username, limit: $limit) {
+        id
+        title
+        titleSlug
+        timestamp
+        statusDisplay
+        lang
+        runtime
+        memory
       }
     }
   `;
 
   const data = (await leetcodeGraphQL(
     query,
-    { offset, limit },
+    { username, limit },
     { session, csrfToken }
   )) as {
-    submissionList: {
-      lastKey: string;
-      hasNext: boolean;
-      submissions: LeetCodeSubmission[];
-    };
+    recentSubmissionList: LeetCodeSubmission[];
   };
 
   return {
-    submissions: data.submissionList?.submissions || [],
-    hasMore: data.submissionList?.hasNext || false,
+    submissions: data.recentSubmissionList || [],
+    hasMore: false, // recentSubmissionList does not support pagination
   };
 }
 

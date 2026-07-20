@@ -88,7 +88,7 @@ export async function syncUserSubmissions(userId: string): Promise<SyncResult> {
   try {
     outer: while (newCount < MAX_SUBMISSIONS_PER_RUN) {
       const { submissions, hasMore } = await fetchRecentSubmissions(
-        session, csrfToken, PAGE_SIZE, offset
+        credential.leetcodeUsername, session, csrfToken, PAGE_SIZE
       );
 
       if (submissions.length === 0) break;
