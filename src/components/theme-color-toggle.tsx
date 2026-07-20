@@ -45,8 +45,11 @@ export function ThemeColorToggle() {
 
   const updateHue = (newHue: number) => {
     setHue(newHue);
-    localStorage.setItem("leetgit-theme-hue", newHue.toString());
     document.documentElement.style.setProperty("--hue", newHue.toString());
+  };
+
+  const commitHue = (newHue: number) => {
+    localStorage.setItem("leetgit-theme-hue", newHue.toString());
   };
 
   if (!mounted) return (
@@ -75,7 +78,10 @@ export function ThemeColorToggle() {
             {PRESETS.map((preset) => (
               <button
                 key={preset.name}
-                onClick={() => updateHue(preset.hue)}
+                onClick={() => {
+                  updateHue(preset.hue);
+                  commitHue(preset.hue);
+                }}
                 className={`group relative aspect-square rounded-full transition-all duration-300 focus:outline-none hover:scale-110
                   ${hue === preset.hue ? "scale-110 shadow-[0_0_20px_var(--color-text-primary)]" : "hover:shadow-md ring-1 ring-white/10"}
                 `}
@@ -106,6 +112,8 @@ export function ThemeColorToggle() {
                 max="360"
                 value={hue}
                 onChange={(e) => updateHue(parseInt(e.target.value, 10))}
+                onPointerUp={() => commitHue(hue)}
+                onTouchEnd={() => commitHue(hue)}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
               <div
