@@ -7,7 +7,10 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["error"] : ["error"],
+    log: [
+      { emit: "event", level: "error" },
+      { emit: "stdout", level: "warn" },
+    ],
     datasources: {
       db: {
         // Add pool_timeout & connect_timeout to survive Neon cold-start wakeups
@@ -17,5 +20,17 @@ export const prisma =
       },
     },
   });
+
+// Handle Neon idle connection drops (Error { kind: Closed, cause: None })
+// By capturing the internal Prisma error event, we can gracefully crash the worker
+// and let Render automatically restart it with a fresh connection pool.
+(prisma as any).$on("error", (e: any) => {
+  console.error("Prisma Error Event:", e.message || e);
+  const msg = e.message || String(e);
+  if (msg.includes("Closed") || msg.includes("connection")) {
+    console.log("♻️ Restarting worker to recover Database connection pool...");
+    process.exit(1);
+  }
+});
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
