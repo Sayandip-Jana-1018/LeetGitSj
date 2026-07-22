@@ -14,7 +14,7 @@ const worker = startWorker();
 // Run every 4 hours to fetch new submissions silently
 const SYNC_INTERVAL_MS = 4 * 60 * 60 * 1000; 
 
-async function scheduleAllUsers() {
+async function scheduleAllUsers(retryCount = 0) {
   console.log("⏰ Running scheduled cron sync for all active users...");
   try {
     const activeCredentials = await prisma.leetCodeCredential.findMany({
@@ -36,14 +36,12 @@ async function scheduleAllUsers() {
       );
     }
   } catch (error: any) {
-    console.error("❌ Error scheduling users:", error);
-    // Neon serverless Postgres drops idle connections. If Prisma's pool is corrupted
-    // and throws a Closed error, the safest recovery in a Render worker is to gracefully crash
-    // and let Render automatically restart the service with a fresh connection pool immediately.
-    if (error?.message?.includes("Closed") || error?.message?.includes("connection")) {
-      console.log("♻️ Restarting worker to recover Database connection pool...");
-      process.exit(1);
+    if (retryCount < 3) {
+      console.log(`💤 Database waking up. Retrying schedule loop in 5 seconds... (Attempt ${retryCount + 1})`);
+      setTimeout(() => scheduleAllUsers(retryCount + 1), 5000);
+      return;
     }
+    console.error("❌ Error scheduling users after retries:", error);
   }
 }
 

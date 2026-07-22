@@ -166,8 +166,7 @@ export function startWorker() {
   worker.on("failed", (job, err: any) => {
     console.error(`[Worker] Job ${job?.id} failed:`, err);
     if (err?.message?.includes("Closed") || err?.message?.includes("connection")) {
-      console.log("♻️ Restarting worker to recover Database connection pool...");
-      process.exit(1);
+      console.log("💤 Database connection was closed. BullMQ will automatically retry this job after the DB wakes up.");
     }
   });
 

@@ -22,14 +22,15 @@ export const prisma =
   });
 
 // Handle Neon idle connection drops (Error { kind: Closed, cause: None })
-// By capturing the internal Prisma error event, we can gracefully crash the worker
-// and let Render automatically restart it with a fresh connection pool.
+// We just log this as a warning. We DO NOT crash the process anymore, because Neon 
+// suspends every 5 minutes and this event fires in the background. Prisma's pool 
+// will automatically heal itself on the next query.
 (prisma as any).$on("error", (e: any) => {
-  console.error("Prisma Error Event:", e.message || e);
   const msg = e.message || String(e);
   if (msg.includes("Closed") || msg.includes("connection")) {
-    console.log("♻️ Restarting worker to recover Database connection pool...");
-    process.exit(1);
+    console.log("💤 Neon database suspended (idle connection closed). Prisma will auto-reconnect on next query.");
+  } else {
+    console.error("Prisma Error Event:", msg);
   }
 });
 
