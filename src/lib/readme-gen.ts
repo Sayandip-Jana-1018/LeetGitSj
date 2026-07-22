@@ -77,6 +77,66 @@ Write the following sections in plain markdown. Make the explanation detailed an
   }
 }
 
+async function generateWithGroq(input: ReadmeInput, modelName: string): Promise<string> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error("GROQ_API_KEY is not set");
+
+  const prompt = `You are helping document a LeetCode solution for a developer's GitHub portfolio.
+
+Problem: ${input.title} (${input.difficulty})
+Tags: ${input.tags.join(", ")}
+Language: ${input.lang}
+
+Code submitted:
+\`\`\`${input.lang}
+${input.code}
+\`\`\`
+
+Write the following sections in plain markdown. Make the explanation detailed and insightful, breaking down exactly how the provided code works. Do NOT reproduce the exact LeetCode problem statement — just give a conceptual summary.
+
+## Problem Summary
+[A brief paraphrase of what the problem asks, in your own words. End with: "See the [full problem on LeetCode](https://leetcode.com/problems/${input.titleSlug}/)."]
+
+## Approach & Implementation
+[A detailed explanation of the algorithm/technique used in the provided code. Name the core pattern (e.g., "Sliding Window", "BFS"). Walk through the main steps of the code, explaining the logic behind the data structures used, loops, and key conditional statements. Use bullet points for step-by-step clarity.]
+
+## Complexity
+> ⚠️ *These are AI-inferred estimates — verify independently.*
+- **Time:** O(...) - [Brief explanation of why]
+- **Space:** O(...) - [Brief explanation of why]`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+
+  try {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: modelName,
+        messages: [{ role: "user", content: prompt }]
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+    
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Groq API Error: ${response.status} ${errText}`);
+    }
+
+    const data = await response.json() as any;
+    return data.choices[0].message.content.trim();
+  } catch (err) {
+    clearTimeout(timeout);
+    throw err;
+  }
+}
+
 // ============================================================
 // Fallback README (no AI sections)
 // ============================================================
@@ -119,18 +179,31 @@ export async function generateReadme(input: ReadmeInput): Promise<ReadmeSections
     ? `https://leetcode.com/submissions/detail/${input.submissionId}/`
     : null;
 
-  // Try AI generation with multi-tiered fallbacks
-  const aiModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
   let aiSections: string | null = null;
   let lastError: unknown = null;
 
-  for (const model of aiModels) {
+  // 1. Try Groq (Llama 3) first if key is available
+  if (process.env.GROQ_API_KEY) {
     try {
-      aiSections = await generateWithGemini(input, model);
-      break; // Success! Break out of fallback loop
+      // Using Llama 3 8B which is lightning fast and has high rate limits on Groq
+      aiSections = await generateWithGroq(input, "llama3-8b-8192");
     } catch (err) {
-      console.warn(`[readme-gen] Model ${model} failed, trying next fallback...`, err instanceof Error ? err.message : err);
+      console.warn(`[readme-gen] Groq failed, trying Gemini fallback...`, err instanceof Error ? err.message : err);
       lastError = err;
+    }
+  }
+
+  // 2. Try Gemini fallback if Groq failed or is not configured
+  if (!aiSections && process.env.GEMINI_API_KEY) {
+    const aiModels = ["gemini-2.0-flash", "gemini-1.5-flash"];
+    for (const model of aiModels) {
+      try {
+        aiSections = await generateWithGemini(input, model);
+        break; // Success! Break out of fallback loop
+      } catch (err) {
+        console.warn(`[readme-gen] Model ${model} failed, trying next fallback...`, err instanceof Error ? err.message : err);
+        lastError = err;
+      }
     }
   }
 
