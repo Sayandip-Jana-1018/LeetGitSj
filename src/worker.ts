@@ -59,6 +59,24 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
   console.log(`✅ Dummy web server listening on port ${PORT} (to keep Render happy)`);
 });
+
+// --- KEEP-ALIVE SELF-PING ---
+// Render free tier spins down services after ~15 min of no HTTP traffic.
+// This self-ping hits our own health endpoint every 10 minutes to prevent that.
+// Without this, the worker process dies silently and the cron loop stops forever.
+const KEEP_ALIVE_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+const RENDER_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+
+setInterval(async () => {
+  try {
+    const res = await fetch(RENDER_URL);
+    console.log(`🏓 Keep-alive ping: ${res.status} OK`);
+  } catch (err: any) {
+    console.warn(`🏓 Keep-alive ping failed (non-critical):`, err.message);
+  }
+}, KEEP_ALIVE_INTERVAL_MS);
+
+console.log(`🏓 Keep-alive self-ping enabled every ${KEEP_ALIVE_INTERVAL_MS / 60000} minutes → ${RENDER_URL}`);
 process.on("SIGTERM", async () => {
   console.log("Shutting down worker...");
   await worker.close();
