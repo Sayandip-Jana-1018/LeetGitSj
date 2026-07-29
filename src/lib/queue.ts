@@ -11,8 +11,8 @@ function getRedisConnection() {
       `\n\n[LeetPush Worker] REDIS_URL is not a valid TCP connection string.\n` +
       `Current value starts with: "${url.slice(0, 20)}..."\n\n` +
       `BullMQ requires a TCP Redis connection, not an HTTP REST endpoint.\n\n` +
-      `To fix: Go to Upstash Console → Your DB → Connect tab → Node.js (ioredis)\n` +
-      `Copy the connection string starting with: rediss://default:TOKEN@HOST:PORT\n` +
+      `To fix: Go to Redis Cloud Console → Your DB → Connect\n` +
+      `Copy the connection string: redis://default:PASSWORD@HOST:PORT\n` +
       `Then set it as REDIS_URL in your .env.local file.\n`
     );
   }
