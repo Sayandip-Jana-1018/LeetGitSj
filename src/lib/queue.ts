@@ -1,4 +1,4 @@
-import { Queue, Worker, QueueEvents, Job } from "bullmq";
+import { Queue, Worker, Job } from "bullmq";
 import Redis from "ioredis";
 
 // Helper to get Redis connection for BullMQ
@@ -61,19 +61,6 @@ export const syncQueue = new Proxy({} as Queue, {
   },
 });
 
-let _syncQueueEvents: QueueEvents | null = null;
-export function getSyncQueueEvents(): QueueEvents {
-  if (!_syncQueueEvents) {
-    _syncQueueEvents = new QueueEvents(SYNC_QUEUE_NAME, { connection: getConnection() as never });
-  }
-  return _syncQueueEvents;
-}
-
-export const syncQueueEvents = new Proxy({} as QueueEvents, {
-  get(_, prop) {
-    return (getSyncQueueEvents() as never)[prop];
-  },
-});
 
 export const AUTO_CONNECT_QUEUE_NAME = "leetpush-auto-connect";
 
@@ -98,19 +85,6 @@ export const autoConnectQueue = new Proxy({} as Queue, {
   },
 });
 
-let _autoConnectQueueEvents: QueueEvents | null = null;
-export function getAutoConnectQueueEvents(): QueueEvents {
-  if (!_autoConnectQueueEvents) {
-    _autoConnectQueueEvents = new QueueEvents(AUTO_CONNECT_QUEUE_NAME, { connection: getConnection() as never });
-  }
-  return _autoConnectQueueEvents;
-}
-
-export const autoConnectQueueEvents = new Proxy({} as QueueEvents, {
-  get(_, prop) {
-    return (getAutoConnectQueueEvents() as never)[prop];
-  },
-});
 
 // Initialize the Worker if we're running in a worker context
 // In Next.js, we don't want the worker running in the main web server process usually,
@@ -155,7 +129,8 @@ export function startWorker() {
     },
     {
       connection: getConnection() as never,
-      concurrency: 5,
+      concurrency: 2,
+      drainDelay: 60, // Poll Redis every 60s when idle (default is 5s). Saves ~90% of Redis requests on Upstash free tier.
     }
   );
 
@@ -218,7 +193,8 @@ export function startWorker() {
     },
     {
       connection: getConnection() as never,
-      concurrency: 2, // Playwright uses memory, keep concurrency low
+      concurrency: 1, // Playwright uses memory, keep concurrency low
+      drainDelay: 60, // Poll Redis every 60s when idle to save Upstash requests
     }
   );
 

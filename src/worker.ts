@@ -64,7 +64,7 @@ server.listen(PORT, () => {
 // Render free tier spins down services after ~15 min of no HTTP traffic.
 // This self-ping hits our own health endpoint every 10 minutes to prevent that.
 // Without this, the worker process dies silently and the cron loop stops forever.
-const KEEP_ALIVE_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+const KEEP_ALIVE_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes (just under Render's ~15 min idle timeout)
 const RENDER_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
 
 setInterval(async () => {
