@@ -182,26 +182,29 @@ export async function generateReadme(input: ReadmeInput): Promise<ReadmeSections
   let aiSections: string | null = null;
   let lastError: unknown = null;
 
-  // 1. Try Groq (Llama 3) first if key is available
+  // 1. Try Groq first if key is available (no request limits, very fast)
   if (process.env.GROQ_API_KEY) {
-    try {
-      // Using Llama 3 8B which is lightning fast and has high rate limits on Groq
-      aiSections = await generateWithGroq(input, "llama3-8b-8192");
-    } catch (err) {
-      console.warn(`[readme-gen] Groq failed, trying Gemini fallback...`, err instanceof Error ? err.message : err);
-      lastError = err;
+    const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"];
+    for (const model of groqModels) {
+      try {
+        aiSections = await generateWithGroq(input, model);
+        break;
+      } catch (err) {
+        console.warn(`[readme-gen] Groq model ${model} failed, trying next...`, err instanceof Error ? err.message : err);
+        lastError = err;
+      }
     }
   }
 
   // 2. Try Gemini fallback if Groq failed or is not configured
   if (!aiSections && process.env.GEMINI_API_KEY) {
-    const aiModels = ["gemini-2.0-flash", "gemini-1.5-flash"];
-    for (const model of aiModels) {
+    const geminiModels = ["gemini-2.5-flash", "gemini-2.0-flash-lite"];
+    for (const model of geminiModels) {
       try {
         aiSections = await generateWithGemini(input, model);
-        break; // Success! Break out of fallback loop
+        break;
       } catch (err) {
-        console.warn(`[readme-gen] Model ${model} failed, trying next fallback...`, err instanceof Error ? err.message : err);
+        console.warn(`[readme-gen] Gemini model ${model} failed, trying next...`, err instanceof Error ? err.message : err);
         lastError = err;
       }
     }
